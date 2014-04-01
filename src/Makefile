@@ -31,7 +31,7 @@ endif
 
 
 ../obj/$(OBJ): $(SRC)
-	@$(CC) -MMD $(CFLAGS) -c $< -o $@ $(XMLFLAGS) $(LUAFLAGS)
+	@$(CC) -MMD $(CFLAGS) -c $< -o $@
 	@cp ../obj/$*.d ./$(subst .c,.P,$(SRC)); \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 			-e '/^$$/ d' -e 's/$$/ :/' < ../obj/$*.d >> ./$(subst .c,.P,$(SRC)); \
