@@ -5,6 +5,7 @@ include ../conf.make
 
 CFLAGS += -I../includes
 SRCS=$(wildcard *.c) 
+OBJS=$(shell find ../../obj -name '*.o')
 EXES=$(patsubst %.c,../../bin/%,$(SRCS))
 
 
@@ -12,17 +13,11 @@ all:$(EXES)
 
 
 ../../bin/%:%.c
-	@$(CC) -MMD $(CFLAGS) -c $< -o $@
-	@cp ../../obj/$*.d ./$*.P; \
-		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-			-e '/^$$/ d' -e 's/$$/ :/' < ../../obj/$*.d >> ./$*.P; \
-		rm -f ../../obj/$*.d
+	@$(CC) $(CFLAGS) $< $(patsubst ../../obj/example.o,,$(OBJS)) -o $@
 	$(info $(TEXT))
 	$(info $*.c)
 
--include *.P
 
 clean: 
-	rm -f *.P
 	rm -f $(EXES)
 

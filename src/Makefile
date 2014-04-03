@@ -1,4 +1,6 @@
-TEXT := >>>>>main compiled<<<<<
+TEXT1 := >>>>>main compiled<<<<<
+TEXT2 := >>>>>tests compiled<<<<
+
 
 include conf.make
 
@@ -14,20 +16,26 @@ OBJS=$(shell find ../obj -name '*.o')
 
 all: exe ../bin/example
 
-tests:
+tests: exe
 	@make -s -C prog_tests
-
-#règles pour le main
-
-exe:
-
-
-../bin/example: ../obj/$(OBJ) $(OBJS)
-	@$(CC) $(CFLAGS) $^ -o $@
 ifeq ($(DEBUG),YES)
 	$(info !!Sources compiled for debug!!)
 endif
-	$(info $(TEXT))
+	$(info $(TEXT2))
+
+exe:
+	@make -s -C core
+	@make -s -C others
+
+#règles pour le main
+
+
+../bin/example: $(OBJS) ../obj/$(OBJ)
+	@$(CC) $(CFLAGS) $(OBJS) -o $@
+ifeq ($(DEBUG),YES)
+	$(info !!Sources compiled for debug!!)
+endif
+	$(info $(TEXT1))
 
 
 ../obj/$(OBJ): $(SRC)

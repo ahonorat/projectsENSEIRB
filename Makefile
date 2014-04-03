@@ -10,7 +10,7 @@ all: dir main
 main:
 	@make -s -C $(SRC_DIR)
 
-tests:
+tests: dir
 	@make -s -C $(SRC_DIR) tests
 
 # dirs

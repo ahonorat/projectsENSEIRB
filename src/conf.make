@@ -1,7 +1,7 @@
 DEBUG=YES
 
 CC=gcc 
-CFLAGS=-W -Wall
+CFLAGS=-W -Wall -lpthread
 
 
 ifeq ($(DEBUG),YES)

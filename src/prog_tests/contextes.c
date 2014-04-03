@@ -1,21 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ucontext.h> /* ne compile pas avec -std=c89 ou -std=c99 */
-#include "../ccan_list/ccan_list_list.h"
+#include "list.h"
+#include "thread.h"
 
-
-struct thread
-{
-};
-struct thread_list
-{
-  struct thread thread;
-  struct list_node list;
-};
-
-static thread_list actual_list;
-
-static list_head thread_list = LIST_HEAD_INIT(actual_list.list);
 
 
 void func(int numero)
@@ -24,14 +12,6 @@ void func(int numero)
   
 }
 
-int thread_create(void **newthread, void *(*func)(void*), void*funcarg){
-  list_add()
-  makecontext(&uc, (void (*)(void)) func, 1, 34);
-  
-
-}
-
-}
 
 
 
