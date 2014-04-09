@@ -12,7 +12,6 @@ struct thread_container;
 
 struct thread{
   ucontext_t uc;
-  struct thread_container * container;
   void * retval;
 };
 
@@ -23,7 +22,8 @@ struct thread_container
 };
 
 static struct thread_list readylist;
-static thread_container running;//TODO modifs
+
+static struct thread_container running;//TODO modifs
 
 static void thread_init() __attribute__ ((constructor));
 static void thread_init()
@@ -39,6 +39,7 @@ void thread_quit(){
 
 
 extern thread_t thread_self(void){
+  //running.thread = malloc(sizeof(struct thread)); // juste pour verifier qu'il renvoie bien le pointeur alloue
   return running.thread;
 }
 
@@ -53,13 +54,9 @@ extern int thread_yield(void){
   //placer le thread courant dans la liste des threads ready
   if (!list_empty(&readylist.children)){
     struct thread * top=list_pop_(&readylist.children,0);
-    struct list_node node;
-    //struct thread_container cont 
-
-    list_add_tail(&readylist.children, node);
-    
-    
-    running = top;//err
+    list_add_tail(&readylist.children, &running.list);
+    //running.list = NULL;
+    running.thread = top;
     
     
   }
