@@ -10,13 +10,14 @@ struct thread_list
 };
 
 struct thread{
-  ucontext_t uc;
+	void * retval;
+	ucontext_t uc;
 };
 
 struct thread_container
 {
-  struct thread *thread;
-  struct list_node list;
+	struct thread *thread;
+	struct list_node list;
 };
 
 static struct thread_list readylist;
@@ -63,6 +64,7 @@ extern int thread_yield(void){
 
 
 extern int thread_join(thread_t thread, void **retval){
+	
   return 0;
 }
 
