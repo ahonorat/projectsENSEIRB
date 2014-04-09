@@ -8,26 +8,27 @@ struct thread_list
   struct list_head children;
   unsigned int num_children;
 };
+struct thread_container;
 
 struct thread{
   ucontext_t uc;
+  struct thread_container * container;
 };
 
 struct thread_container
 {
-  struct thread *thread;
+  thread_t thread;
   struct list_node list;
 };
 
 static struct thread_list readylist;
-static thread_t running;
+static thread_container running;//TODO modifs
 
-int thread_init() __attribute__ ((constructor));
-int thread_init()
+static void thread_init() __attribute__ ((constructor));
+static void thread_init()
 {
   list_head_init(&readylist.children);
   readylist.num_children = 0;
-  return 1;
 }
 
 void thread_quit() __attribute__ ((destructor));
@@ -37,7 +38,7 @@ void thread_quit(){
 
 
 extern thread_t thread_self(void){
-  return running;
+  return running.thread;
 }
 
 
@@ -49,15 +50,18 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 
 extern int thread_yield(void){
   //placer le thread courant dans la liste des threads ready
-  if (!list_empty(readylist.children)){
+  if (!list_empty(&readylist.children)){
+    struct thread * top=list_pop_(&readylist.children,0);
+    struct list_node node;
+    //struct thread_container cont 
+
+    list_add_tail(&readylist.children, node);
     
+    
+    running = top;//err
     
     
   }
-
-
-  //  thread_t curr = 
-  
   return 0;
 }
 
