@@ -51,14 +51,29 @@
 \input{pageGarde.tex}
 
 \newpage
-\tableofcontents
+%\tableofcontents
 
-\renewcommand{\labelitemi}{$\bullet$}
+%\vspace{0.2\textheight}
 
 \section*{Introduction}
 
-\section{C\oe ur}
+\paragraph{}
+Le projet de système d'exploitation consiste à dévelloper une bibliothèque de \emph{threads}, basée sur l'interface de \texttt{p\_thread}. Dans un premier temps, celle-ci devra se contenter d'un seul thread noyau, ainsi tous les \emph{threads} que créera l'utilisateur seront exécutés de manière séquentielle. 
 
-\section*{Conclusion}
+\paragraph{}
+L'objectif minimal est de pouvoir implémenter toutes les fonctions de prototypes identiques à ceux de \texttt{p\_thread}, de sorte que tous les tests fournis foncionnent. Ce premier rapport présente l'avancement actuel du projet, en précisant les parties opérationnelles et non opérationnelles, ainsi que les choix effectués et à venir.
+
+%\newpage
+\section{Fonctionnement de la bibliothèque}
+
+\subsection{Organisation des sources}
+
+\subsection{Fonctionnalités opérationnelles}
+
+\section{Validation des résultats}
+
+\subsection{Passage des tests fournis}
+
+\subsection{Comparaison avec \texttt{p\_thread}}
 
 \end{document}
