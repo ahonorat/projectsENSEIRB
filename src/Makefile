@@ -1,57 +1,54 @@
 TEXT1 := >>>>>main compiled<<<<<
 TEXT2 := >>>>>tests compiled<<<<
+TEXT3 := >>>>>lib compiled<<<<<<
 
 
 include conf.make
 
-
 CFLAGS += -Iincludes
 SRC:=example.c
-OBJ:=example.o
-
-OBJS=$(shell find ../obj -name '*.o')
+LIB:=$(shell find ../$(LIB_DIR) -name '*.so')
+OBJS=$(shell find ../$(OBJ_DIR) -name '*.o')
+HERE:=$(shell pwd)
 
 
 #règles générales
 
-all: exe ../bin/example
+all: lib ../bin/example
 
-tests: exe
+tests: lib
 	@make -s -C prog_tests
 ifeq ($(DEBUG),YES)
 	$(info !!Sources compiled for debug!!)
 endif
 	$(info $(TEXT2))
 
-exe:
+lib: obj ../$(LIB_DIR)/thread.so
+
+obj:
 	@make -s -C core
 	@make -s -C others
+
+../$(LIB_DIR)/thread.so: $(OBJS)
+	@$(CC) $(CFLAGS) -o ../$(LIB_DIR)/thread.so -shared $(OBJS)
+	$(info $(TEXT3))
 
 #règles pour le main
 
 
-../bin/example: $(OBJS) ../obj/$(OBJ)
-	@$(CC) $(CFLAGS) $(OBJS) -o $@
+../bin/example: $(OBJS) $(SRC)
+	$(CC) $(CFLAGS) $(SRC) $(HERE)/../$(LIB_DIR)/thread.so -o $@
 ifeq ($(DEBUG),YES)
 	$(info !!Sources compiled for debug!!)
 endif
 	$(info $(TEXT1))
-
-
-../obj/$(OBJ): $(SRC)
-	@$(CC) -MMD $(CFLAGS) -c $< -o $@
-	@cp ../obj/$*.d ./$(subst .c,.P,$(SRC)); \
-		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-			-e '/^$$/ d' -e 's/$$/ :/' < ../obj/$*.d >> ./$(subst .c,.P,$(SRC)); \
-		rm -f ../obj/$*.d
-
--include $(subst .c,.P,$(SRC))
+	$(info $(HERE)/../$(LIB_DIR))
 
 #règles de mrpropre
 
 clean: 	
 	rm -f *.P
-	rm -f ../bin/example ../obj/$(OBJ) $(subst .c,.P,$(SRC))
+	rm -f ../$(BIN_DIR)/example ../$(LIB_DIR)/thread.so $(subst .c,.P,$(SRC))
 	@make -s -C core clean
 	@make -s -C others clean
 	@make -s -C prog_tests clean

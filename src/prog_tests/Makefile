@@ -1,19 +1,21 @@
-TEXT := >>>>>Compilation of a tests file finished<<<<<
+TEXT := >>>>>Compilation of a test file finished<<<<<
 
 include ../conf.make
 
 
 CFLAGS += -I../includes
 SRCS=$(wildcard *.c) 
-OBJS=$(shell find ../../obj -name '*.o')
+OBJS=$(shell find ../../$(OBJ_DIR) -name '*.o')
 EXES=$(patsubst %.c,../../bin/%,$(SRCS))
+LIB:=$(shell find ../../$(LIB_DIR) -name '*.so')
+HERE:=$(shell pwd)
 
 
 all:$(EXES)
 
 
 ../../bin/%:%.c
-	@$(CC) $(CFLAGS) $< $(patsubst ../../obj/example.o,,$(OBJS)) -o $@
+	@$(CC) $(CFLAGS) $< $(HERE)/../../$(LIB_DIR)/thread.so -o $@
 	$(info $(TEXT))
 	$(info $*.c)
 

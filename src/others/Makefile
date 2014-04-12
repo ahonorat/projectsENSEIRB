@@ -5,7 +5,7 @@ include ../conf.make
 
 CFLAGS += -I../includes
 SRCS=$(wildcard *.c) 
-OBJS=$(patsubst %.c,../../obj/%.o,$(SRCS))
+OBJS=$(patsubst %.c,../../$(OBJ_DIR)/%.o,$(SRCS))
 
 
 all:$(OBJS)
@@ -13,10 +13,10 @@ all:$(OBJS)
 
 ../../obj/%.o:%.c
 	@$(CC) -MMD $(CFLAGS) -c $< -o $@
-	@cp ../../obj/$*.d ./$*.P; \
+	@cp ../../$(OBJ_DIR)/$*.d ./$*.P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-			-e '/^$$/ d' -e 's/$$/ :/' < ../../obj/$*.d >> ./$*.P; \
-		rm -f ../../obj/$*.d
+			-e '/^$$/ d' -e 's/$$/ :/' < ../../$(OBJ_DIR)/$*.d >> ./$*.P; \
+		rm -f ../../$(OBJ_DIR)/$*.d
 	$(info $(TEXT))
 	$(info $*.c)
 
