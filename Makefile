@@ -1,7 +1,5 @@
 include src/conf.make
 
-TESTS=$(shell find $(BIN_DIR) -name '[0-9]*')
-
 # main rules
 all: dir lib main
 	$(info =====>Compilation finished)
@@ -14,9 +12,6 @@ lib:
 
 tests: dir lib
 	@make -s -C src tests
-
-bench:
-	$(shell tests.sh)
 
 # dirs
 dir:

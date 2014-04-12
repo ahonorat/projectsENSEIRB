@@ -37,12 +37,11 @@ obj:
 
 
 ../bin/example: $(OBJS) $(SRC)
-	$(CC) $(CFLAGS) $(SRC) $(HERE)/../$(LIB_DIR)/thread.so -o $@
+	@$(CC) $(CFLAGS) $(SRC) $(HERE)/../$(LIB_DIR)/thread.so -o $@
 ifeq ($(DEBUG),YES)
 	$(info !!Sources compiled for debug!!)
 endif
 	$(info $(TEXT1))
-	$(info $(HERE)/../$(LIB_DIR))
 
 #règles de mrpropre
 

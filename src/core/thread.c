@@ -1,49 +1,29 @@
-#include "list.h"
+#include "ordo.h"
 #include "thread.h"
-#include <ucontext.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <valgrind/valgrind.h>
 
-struct thread_list
-{
-  struct list_head children;
-  unsigned int num_children;
-};
-struct thread_container;
+/* Prototypes des variables globales et fonctions locales */
 
-struct thread{
-  ucontext_t uc;
-  void * retval;
-#ifndef NDEBUG
-  int valgrind_stackid;
-#endif
-};
-
-struct thread_container
-{
-  struct list_node node;
-  struct thread *thread;
-};
-
-/*Tout doux*/
-inline struct thread_container * pop_from_list(struct thread_list *l);
-inline void add_in_list(struct thread_list *l, struct thread_container *thread){}
-inline struct thread_container * get_last_element(struct thread_list *list){}
-/*/todo*/
 void run_thread(struct thread_container * next_running_thread);
+static void thread_init() __attribute__ ((constructor));
+static void thread_quit() __attribute__ ((destructor));
+
 static struct thread_list ready_list;
 static struct thread_list waiting_list;
 
 static struct thread_container *running;
 
 
-inline struct thread_container * chose_next_running_thread()
+/* Définitions des fonctions locales */
+
+void run_thread(struct thread_container * next_running_thread)
 {
-  return get_last_element(&ready_list);
+  if(next_running_thread == NULL)
+    exit(0);
+  running = next_running_thread;
+  setcontext(&next_running_thread->thread->uc);
 }
 
-static void thread_init() __attribute__ ((constructor));
+
 static void thread_init()
 {
   list_head_init(&ready_list.children);
@@ -52,14 +32,16 @@ static void thread_init()
   running->thread = (struct thread *)malloc(sizeof(struct thread));
 }
 
-void thread_quit() __attribute__ ((destructor));
-void thread_quit(){
+static void thread_quit(){
   if(running->thread)
     free(running->thread);
   
   // question a faverge pour libérer le thread main et les autres  
   
 }
+
+
+/* Fonctions de la bibliothèque */
 
 
 extern thread_t thread_self(void){
@@ -96,8 +78,9 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
   (*newthread)->retval = NULL;
   struct thread_container *c = (struct thread_container*) malloc(sizeof(struct thread_container));
   c->thread = *newthread;
-  list_add_tail(&ready_list.children, &c->node);
-  
+
+  add_in_list(&ready_list, c);
+
   // appel de yield
   if (thread_yield()){
     perror("erreur appel yield ds thread_create");
@@ -127,18 +110,7 @@ extern int thread_join(thread_t thread, void **retval){
 extern void thread_exit(void *retval) {
   running->thread->retval = retval;
   add_in_list(&waiting_list, running);
-  run_thread(chose_next_running_thread());
+  run_thread(chose_next_running_thread(&ready_list));
 }
 
-void run_thread(struct thread_container * next_running_thread)
-{
-  if(next_running_thread == NULL)
-    exit(0);
-  running = next_running_thread;
-  setcontext(&next_running_thread->thread->uc);
-}
 
-inline struct thread_container * pop_from_list(struct thread_list *l)
-{
-  return list_pop(&l->children, struct thread_container, node); 
-}
