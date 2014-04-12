@@ -24,6 +24,7 @@ endif
 	$(info $(TEXT2))
 
 lib: obj ../$(LIB_DIR)/thread.so
+	$(info $(TEXT3))
 
 obj:
 	@make -s -C core
@@ -31,7 +32,6 @@ obj:
 
 ../$(LIB_DIR)/thread.so: $(OBJS)
 	@$(CC) $(CFLAGS) -o ../$(LIB_DIR)/thread.so -shared $(OBJS)
-	$(info $(TEXT3))
 
 #règles pour le main
 

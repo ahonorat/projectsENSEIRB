@@ -1,13 +1,13 @@
 include src/conf.make
 
 # main rules
-all: dir lib main
+all: lib main
 	$(info =====>Compilation finished)
 
-main:
+main: dir
 	@make -s -C src
 
-lib:
+lib: dir
 	@make -s -C src lib
 
 tests: dir lib
