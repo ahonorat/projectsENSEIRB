@@ -7,6 +7,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+enum status_t {
+  READY,
+  WAITING
+};
+
 struct thread_list
 {
   struct list_head children;
@@ -16,6 +21,7 @@ struct thread_container;
 
 struct thread{
   ucontext_t uc;
+  enum status_t status;
   void * retval;
 #ifndef NDEBUG
   int valgrind_stackid;

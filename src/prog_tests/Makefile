@@ -10,14 +10,23 @@ EXES=$(patsubst %.c,../../bin/%,$(SRCS))
 LIB:=$(shell find ../../$(LIB_DIR) -name '*.so')
 HERE:=$(shell pwd)
 
-
+ifeq ($(OPT),-DUSE_PTHREAD)
+all:$(patsubst %,%_pthread,$(EXES))
+else
 all:$(EXES)
+endif
 
-
+ifeq ($(OPT),-DUSE_PTHREAD)
+../../bin/%_pthread:%.c
+	@$(CC) $(CFLAGS) $< -o $@
+	$(info $(TEXT))
+	$(info $*.c)
+else
 ../../bin/%:%.c
 	@$(CC) $(CFLAGS) $< $(HERE)/../../$(LIB_DIR)/thread.so -o $@
 	$(info $(TEXT))
 	$(info $*.c)
+endif
 
 
 clean: 

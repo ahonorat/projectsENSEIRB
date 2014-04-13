@@ -14,7 +14,11 @@ HERE:=$(shell pwd)
 
 #règles générales
 
+ifeq ($(OPT),-DUSE_PTHREAD)
+all: lib ../bin/example_pthread
+else
 all: lib ../bin/example
+endif
 
 tests: lib
 	@make -s -C prog_tests
@@ -23,8 +27,11 @@ ifeq ($(DEBUG),YES)
 endif
 	$(info $(TEXT2))
 
+ifeq ($(OPT),-DUSE_PTHREAD)
+lib: 
+else
 lib: obj ../$(LIB_DIR)/thread.so
-	$(info $(TEXT3))
+endif
 
 obj:
 	@make -s -C core
@@ -32,16 +39,26 @@ obj:
 
 ../$(LIB_DIR)/thread.so: $(OBJS)
 	@$(CC) $(CFLAGS) -o ../$(LIB_DIR)/thread.so -shared $(OBJS)
+	$(info $(TEXT3))
 
 #règles pour le main
 
-
+ifeq ($(OPT),-DUSE_PTHREAD)
+../bin/example_pthread: $(OBJS) $(SRC)
+	@$(CC) $(CFLAGS) $(SRC) -o $@
+ifeq ($(DEBUG),YES)
+	$(info !!Sources compiled for debug!!)
+endif
+	$(info $(TEXT1))
+else 
 ../bin/example: $(OBJS) $(SRC)
 	@$(CC) $(CFLAGS) $(SRC) $(HERE)/../$(LIB_DIR)/thread.so -o $@
 ifeq ($(DEBUG),YES)
 	$(info !!Sources compiled for debug!!)
 endif
 	$(info $(TEXT1))
+endif
+
 
 #règles de mrpropre
 

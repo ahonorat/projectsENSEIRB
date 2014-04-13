@@ -1,6 +1,5 @@
 #include "ordo.h"
 
-
 void add_in_list(struct thread_list *l, struct thread_container *thread)
 {
   add_in_list_tail(l, thread);

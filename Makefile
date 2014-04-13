@@ -2,7 +2,6 @@ include src/conf.make
 
 # main rules
 all: lib main
-	$(info =====>Compilation finished)
 
 main: dir
 	@make -s -C src
