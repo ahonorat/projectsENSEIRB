@@ -10,12 +10,12 @@ Création d'une bibliothèque de threads en C
 + make : contruit la bibliothèque de threads, ainsi que le programme d'exemple fourni
 + make lib : construit uniquement la bibliothèque
 + make tests : construits les exécutables de tous les tests fournis
++ rajouter OPT=-DUSE_PTHREAD dans les commandes pour utiliser la bibliothèque p_thread
+
 
 ###Configuration de la compilation###
 
-Il est possible d'éditer le fichier src/conf.make afin de configurer deux options :
-+ changer la variable DEBUG à NO pour compiler sans symboles de débuggage ni vérification valgrind
-+ rajouter -DUSE_PTHREAD dans les CFLAGS pour utiliser la bibliothèque p_thread
+Il est possible d'éditer le fichier src/conf.make afin de changer la variable DEBUG à NO pour compiler sans symboles de débuggage ni vérification valgrind
 
 ## Scripts de tests ##
 

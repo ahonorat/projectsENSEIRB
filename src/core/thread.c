@@ -3,14 +3,14 @@
 
 /* Prototypes des variables globales et fonctions locales */
 void thread_construct(struct thread *th);
-void run_thread(struct thread_container * next_running_thread);
+void run_thread(struct thread * next_running_thread);
 static void thread_init() __attribute__ ((constructor));
 static void thread_quit() __attribute__ ((destructor));
 
 static struct thread_list ready_list;
 static struct thread_list waiting_list;
 
-static struct thread_container *running;
+static struct thread *running;
 
 
 /* Définitions des fonctions locales */
@@ -20,12 +20,12 @@ void thread_construct(struct thread *th){
   getcontext(&th->uc);
 }
 
-void run_thread(struct thread_container * next_running_thread)
+void run_thread(struct thread * next_running_thread)
 {
   if(next_running_thread == NULL)
     exit(0);
   running = next_running_thread;
-  setcontext(&next_running_thread->thread->uc);
+  setcontext(&next_running_thread->uc);
 }
 
 static void thread_init()
@@ -34,14 +34,13 @@ static void thread_init()
   ready_list.num_children = 0;
   list_head_init(&waiting_list.children);
   waiting_list.num_children = 0;
-  running = (struct thread_container *)malloc(sizeof(struct thread_container));
-  running->thread = (struct thread *)malloc(sizeof(struct thread));
-  thread_construct(running->thread);
+  running = (struct thread *)malloc(sizeof(struct thread));
+  thread_construct(running);
 }
 
 static void thread_quit(){
-  if(running->thread){
-    // free(running->thread);
+  if(running){
+    // free(running);
   }
   // question a faverge pour libérer le thread main et les autres  
   
@@ -54,7 +53,7 @@ static void thread_quit(){
 
 
 extern struct thread * thread_self(void){
-  return running->thread;
+  return running;
 }
 
 
@@ -87,10 +86,8 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 #endif
 
   (*newthread)->retval = NULL;
-  struct thread_container *c = (struct thread_container*) malloc(sizeof(struct thread_container));
-  c->thread = *newthread;
 
-  add_in_list(&ready_list, c);
+  add_in_list(&ready_list, *newthread);
 
   // appel de yield
   if (thread_yield()){
@@ -105,10 +102,10 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 extern int thread_yield(void){
   //place le thread courant dans la liste des threads ready
   add_in_list(&ready_list, running);
-  struct thread_container * top = pop_from_list(&ready_list);
-  struct thread_container * prev = running;
+  struct thread * top = pop_from_list(&ready_list);
+  struct thread * prev = running;
   running = top;
-  return swapcontext(&prev->thread->uc, &top->thread->uc);
+  return swapcontext(&prev->uc, &top->uc);
 }
 
 
@@ -121,8 +118,8 @@ extern int thread_join(thread_t thread, void **retval){
 
 
 extern void thread_exit(void *retval) {
-  running->thread->retval = retval;
-  running->thread->status = WAITING;
+  running->retval = retval;
+  running->status = WAITING;
   add_in_list(&waiting_list, running);
   run_thread(chose_next_running_thread(&ready_list));
 }
