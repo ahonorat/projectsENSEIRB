@@ -4,6 +4,7 @@
 /* Prototypes des variables globales et fonctions locales */
 void thread_construct(struct thread *th);
 void run_thread(struct thread * next_running_thread);
+void * th_intermediare(void * res);
 static void thread_init() __attribute__ ((constructor));
 static void thread_quit() __attribute__ ((destructor));
 
@@ -26,6 +27,11 @@ void run_thread(struct thread * next_running_thread)
     exit(0);
   running = next_running_thread;
   setcontext(&next_running_thread->uc);
+}
+
+void * th_intermediaire(void *(*func)(void *), void *funcarg){
+  void * res = func(funcarg);
+  thread_exit(res);
 }
 
 static void thread_init()
@@ -79,7 +85,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     return -1;
   }
   uc->uc_link = NULL;
-  makecontext(uc, (void (*)(void)) func, 1, funcarg);
+  makecontext(uc, (void (*)(void)) th_intermediaire, 2, func, funcarg);
 
 #ifndef NDEBUG
   (*newthread)->valgrind_stackid = VALGRIND_STACK_REGISTER(uc->uc_stack.ss_sp,uc->uc_stack.ss_sp + uc->uc_stack.ss_size);
