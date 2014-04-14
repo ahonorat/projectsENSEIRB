@@ -1,6 +1,8 @@
 #include "ordo.h"
 #include "thread.h"
 
+#define SIZE_THREAD 64*1024
+
 /* Prototypes des variables globales et fonctions locales */
 void thread_construct(struct thread *th);
 void run_thread(struct thread * next_running_thread);
@@ -12,7 +14,6 @@ static struct thread_list ready_list;
 static struct thread_list waiting_list;
 
 static struct thread *running;
-
 
 /* Définitions des fonctions locales */
 
@@ -46,10 +47,8 @@ static void thread_init()
 
 static void thread_quit(){
   if(running){
-    // free(running);
-  }
-  // question a faverge pour libérer le thread main et les autres  
-  
+   free(running);
+  }  
 }
 
 
@@ -77,7 +76,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
   // initialisation newthread
   uc = &(*newthread)->uc;
   thread_construct(*newthread);
-  uc->uc_stack.ss_size = 64*1024;
+  uc->uc_stack.ss_size = SIZE_THREAD;
   uc->uc_stack.ss_sp = malloc(uc->uc_stack.ss_size);
   if(!uc->uc_stack.ss_sp){
     free(newthread);
@@ -119,6 +118,9 @@ extern int thread_join(thread_t thread, void **retval){
   while (thread->status != WAITING)
     thread_yield();
   *retval = thread->retval;
+  free(thread -> uc . uc_stack . ss_sp);
+  list_del(&thread->node);
+  free(thread);
   return 0;
 }
 
