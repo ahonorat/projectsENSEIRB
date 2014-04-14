@@ -32,6 +32,8 @@ void run_thread(struct thread * next_running_thread)
 void * th_intermediaire(void *(*func)(void *), void *funcarg){
   void * res = func(funcarg);
   thread_exit(res);
+  assert(0); //on n'est pas censé arriver là
+  return NULL;
 }
 
 static void thread_init()
