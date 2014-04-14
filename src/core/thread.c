@@ -1,8 +1,10 @@
 #include "ordo.h"
 #include "thread.h"
 
+#define SIZE_THREAD 64*1024
+
 /* Prototypes des variables globales et fonctions locales */
-void thread_construct(struct thread *th);
+int thread_construct(struct thread *th, int is_main);
 void run_thread(struct thread * next_running_thread);
 void * th_intermediare(void * res);
 static void thread_init() __attribute__ ((constructor));
@@ -13,12 +15,34 @@ static struct thread_list waiting_list;
 
 static struct thread *running;
 
-
 /* Définitions des fonctions locales */
+void thread_destruct(struct thread * th){
+  list_del(&th->node);
+  if(!th -> is_main){
+    free(th -> uc . uc_stack . ss_sp);
+  }
+}
 
-void thread_construct(struct thread *th){
+int thread_construct(struct thread *th, int is_main){
   th->status = READY;
+  th -> is_main = is_main;
+  ucontext_t * uc = &th -> uc;
+  if(!is_main){
+    uc->uc_stack.ss_size = SIZE_THREAD;
+    uc->uc_stack.ss_sp = malloc(uc->uc_stack.ss_size);
+    if(!uc->uc_stack.ss_sp){
+      perror("malloc stack ds thread_create");
+      return -1;
+    }
+#ifndef NDEBUG
+    th->valgrind_stackid = VALGRIND_STACK_REGISTER(uc->uc_stack.ss_sp,uc->uc_stack.ss_sp + uc->uc_stack.ss_size);
+#endif
+		
+  }
+  uc->uc_link = NULL;
+	
   getcontext(&th->uc);
+  return 0;
 }
 
 void run_thread(struct thread * next_running_thread)
@@ -43,15 +67,14 @@ static void thread_init()
   list_head_init(&waiting_list.children);
   waiting_list.num_children = 0;
   running = (struct thread *)malloc(sizeof(struct thread));
-  thread_construct(running);
+  thread_construct(running, 1);
 }
 
 static void thread_quit(){
   if(running){
-    // free(running);
-  }
-  // question a faverge pour libérer le thread main et les autres  
-  
+    thread_destruct(running);
+    free(running);
+  }  
 }
 
 
@@ -78,20 +101,12 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
  
   // initialisation newthread
   uc = &(*newthread)->uc;
-  thread_construct(*newthread);
-  uc->uc_stack.ss_size = 64*1024;
-  uc->uc_stack.ss_sp = malloc(uc->uc_stack.ss_size);
-  if(!uc->uc_stack.ss_sp){
+  if(thread_construct(*newthread, 0)==-1){
     free(newthread);
-    perror("malloc stack ds thread_create");
     return -1;
   }
-  uc->uc_link = NULL;
   makecontext(uc, (void (*)(void)) th_intermediaire, 2, func, funcarg);
 
-#ifndef NDEBUG
-  (*newthread)->valgrind_stackid = VALGRIND_STACK_REGISTER(uc->uc_stack.ss_sp,uc->uc_stack.ss_sp + uc->uc_stack.ss_size);
-#endif
 
   (*newthread)->retval = NULL;
 
@@ -121,6 +136,8 @@ extern int thread_join(thread_t thread, void **retval){
   while (thread->status != WAITING)
     thread_yield();
   *retval = thread->retval;
+  thread_destruct(thread);
+  free(thread);
   return 0;
 }
 

@@ -21,6 +21,7 @@ struct thread_list
 };
 
 struct thread{
+	int is_main;
   struct list_node node;
   ucontext_t uc;
   enum status_t status;
