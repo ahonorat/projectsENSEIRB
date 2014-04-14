@@ -1,12 +1,13 @@
-TEXT := >>>>>Compilation of a test file finished<<<<<
+TEXT1 := >>>>>Compilation of a test file finished (using pthread)<<<<<
+TEXT2 := >>>>>Compilation of a test file finished<<<<<
 
 include ../conf.make
 
 
 CFLAGS += -I../includes
-SRCS=$(wildcard *.c) 
+SRCS=$(shell find -name '[0-9]*.c')
 OBJS=$(shell find ../../$(OBJ_DIR) -name '*.o')
-EXES=$(patsubst %.c,../../bin/%,$(SRCS))
+EXES=$(patsubst %.c,../../$(BIN_DIR)/%,$(SRCS))
 LIB:=$(shell find ../../$(LIB_DIR) -name '*.so')
 HERE:=$(shell pwd)
 
@@ -17,17 +18,19 @@ all:$(EXES)
 endif
 
 ifeq ($(OPT),-DUSE_PTHREAD)
-../../bin/%_pthread:%.c
+../../$(BIN_DIR)/%_pthread:%.c
 	@$(CC) $(CFLAGS) $< -o $@
-	$(info $(TEXT))
+	$(info $(TEXT1))
 	$(info $*.c)
 else
-../../bin/%:%.c
+../../$(BIN_DIR)/%:%.c
 	@$(CC) $(CFLAGS) $< $(HERE)/../../$(LIB_DIR)/thread.so -o $@
-	$(info $(TEXT))
+	$(info $(TEXT2))
 	$(info $*.c)
 endif
 
+contextes:contextes.c
+	@$(CC) $(CFLAGS) $< -o ../../$(BIN_DIR)/$@
 
 clean: 
 	rm -f $(EXES)
