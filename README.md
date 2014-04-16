@@ -19,4 +19,4 @@ Il est possible d'éditer le fichier src/conf.make afin de changer la variable D
 
 ## Scripts de tests ##
 
-To be continued ... (générer les temps d'exécution, puis graphiques par python)
+Le script actuel run_tests.sh lance tous les binaires de tests fournis par M. Goglin, avec p_thread et avec thread.so. Une comparaison entre les deux versions est effectuée pour chaque test puis un diff des résultats et un diff de valgrind est affiché. La génération/configuration de graphiques n'est pas encore effectuée.
