@@ -17,8 +17,9 @@ static struct thread *running;
 
 /* Définitions des fonctions locales */
 void thread_destruct(struct thread * th){
-  list_del(&th->node);
-  if(!th -> is_main){
+  if(running != th)
+    list_del(&th->node);
+  if(!th -> is_main && running != th){
     free(th -> uc . uc_stack . ss_sp);
   }
 }
@@ -136,8 +137,8 @@ extern int thread_join(thread_t thread, void **retval){
   while (thread->status != WAITING)
     thread_yield();
   *retval = thread->retval;
-  thread_destruct(thread);
-  free(thread);
+    thread_destruct(thread);
+    free(thread);
   return 0;
 }
 
