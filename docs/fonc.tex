@@ -1,0 +1,51 @@
+\section{Fonctionnement de la bibliothèque}
+La bibliothèque, s'inspirant de \texttt{p\_thread}, implémente les fonctions suivantes:
+\begin{itemize}
+  \item \texttt{thread\_self}
+  \item \texttt{thread\_create}
+  \item \texttt{thread\_yield}
+  \item \texttt{thread\_join}
+  \item \texttt{thread\_exit}
+\end{itemize}
+
+\subsection{Organisation des sources}
+\paragraph{}
+L'implémentation de ces fonctions requiert la définition de certaines structures regroupées dans le répertoire \texttt{src/includes}. Les principales structures sont :
+\begin{itemize}
+\item La structure de thread.
+\item La structure de liste.
+\end{itemize}
+La bibliothèque \texttt{ccan\_list} a été choisie pour représenter les listes. Mais afin de pouvoir adapter le code à un autre type de liste, des fonctions d'abstraction ont été écrites dans \texttt{src/others/manip\_list.c}. Celles-ci permettent d'effectuer les opérations basiques sur les listes : parcours, ajout, suppression. De même, aucun ordonnanceur -- autre que l'utilisation basique des listes -- n'est implémenté pour l'instant, mais ses deux fonctions principales (i.e. l'ajout d'un thread à la liste des threads en attente ou prêts, ainsi que la récupération du prochain thread à exécuter) sont regroupées dans un module à part : \texttt{src/core/ordo.c}.
+\paragraph{}
+Enfin les programmes de tests fournis ont été rassemblés dans le répertoire \texttt{src/prog\_tests} et le fichier \texttt{thread.c} a été placé dans le répertoire \texttt{src/core} et contient le code principal du programme. La bibliothèque dynamique créée est \texttt{thread.so}, ce qui permet de ne compiler qu'une seule fois les tests.
+
+
+\subsection{Choix effectués}
+
+La programmation d'une bibliothèque de threads peut s'effectuer de nombreuses façons, en effet différentes politiques d'ordonnancement, de préemption, etc existent. La section suivante précisent ces choix.
+
+\subsubsection{Stockage des threads}
+
+\paragraph{}
+La manière de stocker les threads en mémoire est déterminante sur l'ordonnancement. Les threads sont ainsi stockés selon leur état dans une des trois structures suivantes :
+\begin{itemize}
+\item la \texttt{waiting\_list}, qui contient les threads ayant terminé mais n'ayant pas été récupérés par leur parent ;
+\item la \texttt{ready\_list}, qui contient la liste des threads prêts à s'exécuter ;
+\item le thread \texttt{running}, qui contient le threads en cours d'exécution.
+\end{itemize}
+Actuellement, un seul thread noyau est employé pour exécuter l'ensemble des threads créés par l'utilisateur. L'utilité d'une liste \texttt{running} ne nous a, par conséquent, pas semblé nécessaire pour ce thread particulier. Par ailleurs notons que les deux listes implémentées sont utilisées comme des FIFOs : un thread y est toujours ajouté à la fin, et c'est le premier qui est récupéré.
+
+\subsubsection{La structure thread}
+
+\paragraph{}
+Premièrement, un choix s'est imposé sur la définition de la structure thread. Un thread est de manière évidente, attaché à un contexte et la structure doit donc le contenir.
+\paragraph{}
+D'autre part, un thread, à chaque instant, est soit en attente, soit prêt à être executé, soit en execution. Le statut du thread est stocké au sein de la structure \texttt{thread} elle-même pour des raisons d'optimisation. En effet, il serait inutilement coûteux de devoir parcourir chaque liste à la recherche d'un certain thread pour obtenir son statut, notamment dans le cas d'un \texttt{join} qui doit vérifier si un thread est dans la \texttt{waiting\_list}. 
+\paragraph{}
+Par ailleurs, au vu du contenu des fonctions de \texttt{thread.c}, nous avons choisi de marquer le thread du \texttt{main} d'une manière différente. En effet, son allocation/desallocation s'effectue distinctement des autres : sa pile n'est pas allouée par la bibliothèque. Ce marquage se traduit par un attribut \texttt{is\_main}. 
+\paragraph{}
+Enfin, un attribut \texttt{retval} permet le stockage de la valeur renvoyée au niveau du \texttt{thread\_join}. Pour gérer le cas d'un thread qui n'appelle pas la fonction \texttt{thread\_exit}, une fonction auxiliaire a été implémentée dans la bibliothèque et prend comme argument la fonction passée à \texttt{thread\_create} ainsi que son argument d'appel. Il s'agit d'un \emph{wrapper} qui lui appelle la fonction \texttt{thread\_exit} dans tous les cas.
+
+\subsubsection{Initialisation et Terminaison}
+Les fonctions de notre bibliothèque nécessitent que certains objets soient instanciés au préalable. C'est le cas des deux listes et du thread running qui est initialisé avec le thread du \texttt{main}. De la même façon, avant de quitter le programme, le thread running doit être détruit (les listes ready et waiting sont déjà vides à ce moment là). C'est pourquoi nous avons implémenté les fonctions \texttt{thread\_init} et \texttt{thread\_quit} qui sont appelés automatiquement car définies avec des attributs \emph{constructor} et \emph{destructor} respectivement.
+
