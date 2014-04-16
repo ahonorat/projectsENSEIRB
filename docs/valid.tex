@@ -18,5 +18,16 @@ Une comparaison de performance avec \texttt{p\_thread} peut sembler controversab
 \paragraph{}
 Ainsi la comparaison des temps sur les tests 31, 32 et 51 (respectivement création de threads et yield, création récursive de threads et yield et enfin fibonacci) devraient donc donner les résultats suivants : 31 et 32 plus rapides pour \texttt{thread.so}, 51 plus rapide pour \texttt{p\_thread}.
 \\
-==> des beaux schémas !
- 
+\begin{figure}[!h]
+  \includegraphics[scale=0.5]{31.png}
+\end{figure}
+
+\begin{figure}[!h]
+  \includegraphics[scale=0.5]{31.png}
+\end{figure}
+
+\begin{figure}[!h]
+  \includegraphics[scale=0.5]{31.png}
+\end{figure}
+
+Tous les tests ne sont toutefois pas en accord avec les prévisions faites : notamment en ce qui concerne les tests 32 et 51.
