@@ -120,3 +120,27 @@ Le choix entre \texttt{swapcontext} et \texttt{setcontext} dépend du
 \texttt{thread\_yield} utilise \texttt{swapcontext} alors que 
 \texttt{run\_thread}, appelé uniquement lorsque la \texttt{ready\_list}
 ne contient qu'un élément, utilise \texttt{setcontext}. 
+
+\subsubsection{le thread issu de main}
+Le thread principal est le seul thread que notre bibliothèque ne crée
+pas : son traitement demande par conséquent quelques adaptations.
+
+En particulier, nous n'allouons pas sa pile. Il est donc hors de
+question de la libérer - du reste, nous avons été incapables de
+récupérer son adresse.
+
+La fonction exit est la seule à pouvoir libérer proprement la mémoire
+allouée pour le thread principal.
+
+Cependant, si exécutée depuis un autre contexte que le thread principal
+(avec sa propre pile), la fonction exit dysfoncionne.
+
+Nous recourons donc à une astuce pour, au moment où le thread main
+appelle \texttt{thread\_exit}, sauvegarder un contexte sur le point
+d'apppeler \texttt{exit} tout en le remplaçant par celui d'un thread
+prêt.
+
+Au moment de quitter le programme (si lors d'un appel à
+\texttt{thread_exit}, il n'y a plus de thread prêt à qui donner la
+main -- cf test 12-join), on rend la main à ce contexte, dont la pile
+est la pile principale, et qui exécute donc \texttt{exit} correctement.
