@@ -58,22 +58,60 @@
 \section*{Introduction}
 
 \paragraph{}
-Le projet de système d'exploitation consiste à dévelloper une bibliothèque de \emph{threads}, basée sur l'interface de \texttt{p\_thread}. Dans un premier temps, celle-ci devra se contenter d'un seul thread noyau, ainsi tous les \emph{threads} que créera l'utilisateur seront exécutés de manière séquentielle. 
+Le projet de système d'exploitation consiste à développer une bibliothèque de \emph{threads}, basée sur l'interface de \texttt{p\_thread}. Dans un premier temps, celle-ci devra se contenter d'un seul thread noyau, ainsi tous les \emph{threads} que créera l'utilisateur seront exécutés de manière séquentielle. 
 
 \paragraph{}
 L'objectif minimal est de pouvoir implémenter toutes les fonctions de prototypes identiques à ceux de \texttt{p\_thread}, de sorte que tous les tests fournis foncionnent. Ce premier rapport présente l'avancement actuel du projet, en précisant les parties opérationnelles et non opérationnelles, ainsi que les choix effectués et à venir.
 
 %\newpage
 \section{Fonctionnement de la bibliothèque}
+La bibliothèque, s'inspirant de \texttt{p\_thread}, implémente les fonctions suivantes:
+\begin{itemize}
+  \item \texttt{thread\_self}
+  \item \texttt{thread\_create}
+  \item \texttt{thread\_yield}
+  \item \texttt{thread\_join}
+  \item \texttt{thread\_exit}
+\end{itemize}
 
 \subsection{Organisation des sources}
+\paragraph{}
+L'implémentation de ces fonctions requiert la définition de certaines structures regroupées dans le répertoire \texttt{src/includes}. 
+\begin{itemize}
+\item La structure thread
+\item La structure liste \\
+Nous avons choisi la bibliothèque ccan\_list. Afin de pouvoir adapter le code à un autre type de liste, des fonctions d'abstraction ont été écrites. Celles-ci permettent d'effectuer les opérations basiques sur les listes : parcours, ajout, suppression.
+\end{itemize}
+\paragraph{}
+Les programmes de tests fournis ont été rassemblés dans le répertoire \texttt{src/prog\_tests}.
+\paragraph{}
+Enfin, le fichier \texttt{thread.c} a été placé dans le répertoire \texttt{core.c} et contient le code principal du programme. 
 
-\subsection{Fonctionnalités opérationnelles}
+
+\subsection{Choix effectués}
+\paragraph{}
+Il a été nécessaire de décider de la manière de stocker les threads en mémoire. C'est à ce niveau que la structure liste a été utilisée. Nous avons donc deux listes et un pointeur de thread.
+\begin{itemize}
+\item la waiting\_list
+\item la ready\_list
+\item le thread running
+\end{itemize}
+Actuellement, nous n'avons qu'un seul thread noyau, l'utilité d'une liste running ne nous a, par conséquent, pas semblé nécessaire.
+
+
+\paragraph{}
+Un choix s'est ensuite imposé sur la définition de la structure thread. \\
+Celui-ci est de manière évidente, attaché à un contexte. Il doit donc être stocké dans la structure. \\
+D'autre part, un thread, à chaque instant, est soit en attente, soit prêt à être executé soit en execution. C'est pourquoi, il est, respectivement, dans la waiting\_list, dans la ready\_list ou pointé par le thread running. Cette information sur le statut du thread est également stockée au sein de la structure thread elle-même pour des raisons d'optimisation. En effet, il serait inutilement coûteux de devoir parcourir chaque liste à la recherche d'un certain thread pour obtenir son statut. \\
+Par ailleurs, au vu du contenu des fonctions de \texttt{thread.c}, nous avons choisi de marquer le thread\_main d'une manière différente. En effet, son allocation/desallocation s'effectue distinctement des autres. Ce marquage se traduit par un attribut \texttt{is\_main}. \\ 
+Enfin, un attribut retval permet le stockage de la valeur renvoyée au niveau du thread\_join.
+
+
 
 \section{Validation des résultats}
 
 \subsection{Passage des tests fournis}
-
+%% blabla sur le test 12 et le choix de la fuite mémoire
 \subsection{Comparaison avec \texttt{p\_thread}}
 
 \end{document}
