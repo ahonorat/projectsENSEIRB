@@ -115,32 +115,34 @@ désallocation peut être appelée par \texttt{thread\_quit} ou
 parent, il doit être détruit.
 
 \subsubsection{Création de contexte}
+
+\paragraph{}
 Le choix entre \texttt{swapcontext} et \texttt{setcontext} dépend du
  besoin de retenir le contexte précédent ou non. C'est ainsi que 
 \texttt{thread\_yield} utilise \texttt{swapcontext} alors que 
 \texttt{run\_thread}, appelé uniquement lorsque la \texttt{ready\_list}
 ne contient qu'un élément, utilise \texttt{setcontext}. 
 
-\subsubsection{le thread issu de main}
-Le thread principal est le seul thread que notre bibliothèque ne crée
-pas : son traitement demande par conséquent quelques adaptations.
+\subsubsection{Le thread issu de main}
 
-En particulier, nous n'allouons pas sa pile. Il est donc hors de
+\paragraph{}
+Le thread principal est le seul thread que la bibliothèque ne crée
+pas : son traitement demande par conséquent quelques adaptations.
+En particulier, sa pile n'est pas allouée. Il est donc hors de
 question de la libérer - du reste, nous avons été incapables de
 récupérer son adresse.
 
-La fonction exit est la seule à pouvoir libérer proprement la mémoire
-allouée pour le thread principal.
-
-Cependant, si exécutée depuis un autre contexte que le thread principal
-(avec sa propre pile), la fonction exit dysfoncionne.
-
-Nous recourons donc à une astuce pour, au moment où le thread main
+\paragraph{}
+Par ailleurs, la fonction \texttt{exit} est la seule à pouvoir libérer proprement la mémoire
+allouée pour le thread principal. Cependant, si elle est exécutée depuis un autre contexte que le thread principal
+(avec sa propre pile), la fonction \texttt{exit} dysfoncionne.
+Il faut donc recourir à une astuce pour, au moment où le thread \texttt{main}
 appelle \texttt{thread\_exit}, sauvegarder un contexte sur le point
 d'apppeler \texttt{exit} tout en le remplaçant par celui d'un thread
 prêt.
 
+\paragraph{}
 Au moment de quitter le programme (si lors d'un appel à
-\texttt{thread_exit}, il n'y a plus de thread prêt à qui donner la
+\texttt{thread\_exit}, il n'y a plus de thread prêt à qui donner la
 main -- cf test 12-join), on rend la main à ce contexte, dont la pile
 est la pile principale, et qui exécute donc \texttt{exit} correctement.
