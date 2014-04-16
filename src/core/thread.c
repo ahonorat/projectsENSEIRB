@@ -12,6 +12,7 @@ static void thread_quit() __attribute__ ((destructor));
 
 static struct thread_list ready_list;
 static struct thread_list waiting_list;
+static ucontext_t exiting_context;
 
 static struct thread *running;
 
@@ -19,7 +20,7 @@ static struct thread *running;
 void thread_destruct(struct thread * th){
   if(running != th)
     list_del(&th->node);
-  if(!th -> is_main && running != th){
+  if(!th -> is_main){
     free(th -> uc . uc_stack . ss_sp);
   }
 }
@@ -49,7 +50,7 @@ int thread_construct(struct thread *th, int is_main){
 void run_thread(struct thread * next_running_thread)
 {
   if(next_running_thread == NULL)
-    exit(0);
+    setcontext(&exiting_context);
   running = next_running_thread;
   setcontext(&next_running_thread->uc);
 }
@@ -147,7 +148,17 @@ extern void thread_exit(void *retval) {
   running->retval = retval;
   running->status = WAITING;
   add_in_list(&waiting_list, running);
-  run_thread(chose_next_running_thread(&ready_list));
+
+  if (running->is_main)
+  {
+    struct thread * valid_thread = chose_next_running_thread(&ready_list);
+    running = valid_thread;
+    getcontext(&exiting_context);
+    swapcontext(&exiting_context, &valid_thread->uc);
+    exit(0);
+  }
+  else
+    run_thread(chose_next_running_thread(&ready_list));
 }
 
 #endif
