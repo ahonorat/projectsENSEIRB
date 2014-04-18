@@ -2,29 +2,19 @@
 
 i=10
 
-fonc='01-main 02-switch 11-join 12-join-main 21-create-many 22-create-many-recursive 31-switch-many 51-fibonacci'
+fonc='01-main 02-switch 11-join 12-join-main 21-create-many 22-create-many-recursive 31-switch-many 32-switch-many-join 51-fibonacci'
 
 make -s lib
 make -s tests
 make -s tests OPT=-DUSE_PTHREAD
 
 
+echo -e "###### Result comparison with pthread ######"
+echo -e "(wait until all diff's are written in res_diff)\n"
+
 echo -e "\nDiff info :"
 echo -e "< thread.so"
 echo -e "> p_thread\n"
-
-echo -e "Running all tests in 3 secs"
-sleep 1;
-echo -e "Running all tests in 2 secs"
-sleep 1;
-echo -e "Running all tests in 1 secs"
-sleep 1;
-echo -e "Running all tests in 0 secs\n"
-
-
-
-echo -e "###### Result comparison with pthread ######"
-echo -e "(wait until all diff's are written in res_diff)\n"
 
 echo "" > res_diff
 
@@ -43,6 +33,10 @@ echo -e "\nend of diff\n"
 
 echo -e "###### Valgrind comparison with pthread ######"
 echo -e "(wait until all diff's are written in val_diff)\n"
+
+echo -e "\nDiff info :"
+echo -e "< thread.so"
+echo -e "> p_thread\n"
 
 echo "" > val_diff
 

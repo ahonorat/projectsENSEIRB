@@ -12,6 +12,7 @@ static void thread_quit() __attribute__ ((destructor));
 
 static struct thread_list ready_list;
 static struct thread_list waiting_list;
+static struct thread_list sleeping_list;
 static ucontext_t exiting_context;
 
 static struct thread *running;
@@ -28,6 +29,7 @@ void thread_destruct(struct thread * th){
 int thread_construct(struct thread *th, int is_main){
   th->status = READY;
   th->is_main = is_main;
+  th->parent = NULL;
   ucontext_t * uc = &th->uc;
   if(!is_main){
     uc->uc_stack.ss_size = SIZE_THREAD;
@@ -66,6 +68,8 @@ static void thread_init(){
   ready_list.num_children = 0;
   list_head_init(&waiting_list.children);
   waiting_list.num_children = 0;
+  list_head_init(&sleeping_list.children);
+  sleeping_list.num_children = 0;
   running = (struct thread *)malloc(sizeof(struct thread));
   thread_construct(running, 1);
 }
@@ -95,7 +99,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
   //allocation newthread
   *newthread = (struct thread *) malloc(sizeof(struct thread));
   if(!newthread){
-    perror("malloc newthread ds thread_create");
+    perror("malloc newthread dans thread_create");
     return -1;
   }
  
@@ -106,15 +110,11 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     return -1;
   }
   makecontext(uc, (void (*)(void)) th_intermediaire, 2, func, funcarg);
-
-
   (*newthread)->retval = NULL;
-
   add_in_list(&ready_list, *newthread);
-
   // appel de yield
   if (thread_yield()){
-    perror("erreur appel yield ds thread_create");
+    perror("erreur appel yield dans thread_create");
     return -1;
   }
   return 0;
@@ -125,7 +125,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 extern int thread_yield(void){
   //place le thread courant dans la liste des threads ready
   add_in_list(&ready_list, running);
-  struct thread * top = pop_from_list(&ready_list);
+  struct thread * top = chose_next_running_thread(&ready_list);
   struct thread * prev = running;
   running = top;
   return swapcontext(&prev->uc, &top->uc);
@@ -133,8 +133,28 @@ extern int thread_yield(void){
 
 
 extern int thread_join(thread_t thread, void **retval){
-  while (thread->status != WAITING)
-    thread_yield();
+  if (thread->parent != NULL){
+    perror("thread déjà attendu par qqn d'autre");
+    return 1;
+  } else if (thread == running){
+    perror("impossible de se joindre soi-même");
+    return 1;
+    /*
+  } else if ((exist_thread(&ready_list, thread) == 0) && (exist_thread(&waiting_list, thread) == 0) && (exist_thread(&sleeping_list, thread) == 0)){
+    perror("thread non existant");
+    return 1;
+    */
+  } else  
+    thread->parent = running;
+  if (thread->status != WAITING) {
+    list_del(&running->node);
+    add_in_list(&sleeping_list,running);
+    struct thread * top = chose_next_running_thread(&ready_list);
+    struct thread * prev = running;  
+    running = top;
+    swapcontext(&prev->uc, &top->uc);
+  }
+  assert (thread->status == WAITING);
   *retval = thread->retval;
   thread_destruct(thread);
   free(thread);
@@ -145,18 +165,29 @@ extern int thread_join(thread_t thread, void **retval){
 extern void thread_exit(void *retval){
   running->retval = retval;
   running->status = WAITING;
+  list_del(&running->node);
   add_in_list(&waiting_list, running);
 
-  if (running->is_main)
-    {
-      struct thread * valid_thread = chose_next_running_thread(&ready_list);
-      running = valid_thread;
-      getcontext(&exiting_context);
-      swapcontext(&exiting_context, &valid_thread->uc);
-      exit(0);
+  if (running->is_main){
+    struct thread * valid_thread;
+    if (running->parent != NULL){
+      valid_thread = running->parent;
+      list_del(&valid_thread->node);
     }
-  else
-    run_thread(chose_next_running_thread(&ready_list));
+    else 
+      valid_thread = chose_next_running_thread(&ready_list);
+    running = valid_thread;
+    getcontext(&exiting_context);
+    swapcontext(&exiting_context, &valid_thread->uc);
+    exit(0);
+  } else {
+    if (running->parent != NULL){
+      list_del(&running->parent->node);
+      run_thread(running->parent);
+    } else {
+      run_thread(chose_next_running_thread(&ready_list));
+    } 
+  }
 }
 
 #endif

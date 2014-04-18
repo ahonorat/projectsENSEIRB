@@ -13,3 +13,10 @@ void add_in_list_tail(struct thread_list *l, struct thread *thread){
 }
 
 
+int exist_thread(struct thread_list *l, struct thread *thread){
+  int res = 0;
+  struct thread * th;
+  list_for_each(&l->children, th, node)
+    res += (th == thread);
+  return res;
+}
