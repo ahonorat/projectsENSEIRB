@@ -20,15 +20,15 @@ static struct thread *running;
 void thread_destruct(struct thread * th){
   if(running != th)
     list_del(&th->node);
-  if(!th -> is_main){
-    free(th -> uc . uc_stack . ss_sp);
+  if(!th->is_main){
+    free(th->uc.uc_stack.ss_sp);
   }
 }
 
 int thread_construct(struct thread *th, int is_main){
   th->status = READY;
-  th -> is_main = is_main;
-  ucontext_t * uc = &th -> uc;
+  th->is_main = is_main;
+  ucontext_t * uc = &th->uc;
   if(!is_main){
     uc->uc_stack.ss_size = SIZE_THREAD;
     uc->uc_stack.ss_sp = malloc(uc->uc_stack.ss_size);
@@ -47,8 +47,7 @@ int thread_construct(struct thread *th, int is_main){
   return 0;
 }
 
-void run_thread(struct thread * next_running_thread)
-{
+void run_thread(struct thread * next_running_thread){
   if(next_running_thread == NULL)
     setcontext(&exiting_context);
   running = next_running_thread;
@@ -62,8 +61,7 @@ void * th_intermediaire(void *(*func)(void *), void *funcarg){
   return NULL;
 }
 
-static void thread_init()
-{
+static void thread_init(){
   list_head_init(&ready_list.children);
   ready_list.num_children = 0;
   list_head_init(&waiting_list.children);
@@ -138,25 +136,25 @@ extern int thread_join(thread_t thread, void **retval){
   while (thread->status != WAITING)
     thread_yield();
   *retval = thread->retval;
-    thread_destruct(thread);
-    free(thread);
+  thread_destruct(thread);
+  free(thread);
   return 0;
 }
 
 
-extern void thread_exit(void *retval) {
+extern void thread_exit(void *retval){
   running->retval = retval;
   running->status = WAITING;
   add_in_list(&waiting_list, running);
 
   if (running->is_main)
-  {
-    struct thread * valid_thread = chose_next_running_thread(&ready_list);
-    running = valid_thread;
-    getcontext(&exiting_context);
-    swapcontext(&exiting_context, &valid_thread->uc);
-    exit(0);
-  }
+    {
+      struct thread * valid_thread = chose_next_running_thread(&ready_list);
+      running = valid_thread;
+      getcontext(&exiting_context);
+      swapcontext(&exiting_context, &valid_thread->uc);
+      exit(0);
+    }
   else
     run_thread(chose_next_running_thread(&ready_list));
 }

@@ -1,8 +1,7 @@
 #include "manip_list.h"
 
 
-struct thread * pop_from_list(struct thread_list *l)
-{
+struct thread * pop_from_list(struct thread_list *l){
   l->num_children--;
   return list_pop(&l->children, struct thread, node); 
 }
