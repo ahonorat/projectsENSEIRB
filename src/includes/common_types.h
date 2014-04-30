@@ -14,6 +14,30 @@ enum status_t {
   WAITING
 };
 
+enum signal_t {
+  SIGHUP,
+  SIGINT,
+  SIGQUIT,
+  SIGILL,
+  SIGABRT,
+  SIGFPE,
+  SIGKILL,
+  SIGSEGV,
+  SIGPIPE,
+  SIGALRM,
+  SIGTERM,
+  SIGUSR1,
+  SIGUSR2,
+  SIGCHLD,
+  SIGCONT,
+  SIGSTOP,
+  SIGTSTP,
+  SIGTTIN,
+  SIGTTOU
+};
+
+
+
 struct thread_list
 {
   struct list_head children;
@@ -25,6 +49,7 @@ struct thread{
   struct thread * parent;
   struct list_node node;
   ucontext_t uc;
+  enum signal_t signal;
   enum status_t status;
   void * retval;
 #ifndef NDEBUG
