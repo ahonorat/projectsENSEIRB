@@ -1,5 +1,5 @@
-#ifndef __SIGNAL_H__
-#define __SIGNAL_H__
+#ifndef __MY_SIGNAL_H__
+#define __MY_SIGNAL_H__
 
 #include "thread.h"
 
