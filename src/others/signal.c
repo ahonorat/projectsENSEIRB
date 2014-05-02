@@ -3,9 +3,9 @@ int thread_kill(thread_t thread,int sig){
   return 1;
 }
 
-int thread_sigaction(int signum,const struct sigaction *act,struct sigaction *oldact){
-  if(act)
-    act->handler(signum); 
+int thread_sigaction(int signum,void (*new_sa_handler)(int),void (*old_sa_handler)(int));
+  if(new_sa_handler)
+    new_sa_handler(signum); 
   thread->signal = 0;
 
   return 1;
