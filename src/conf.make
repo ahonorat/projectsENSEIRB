@@ -1,8 +1,9 @@
 DEBUG=YES
 
 CC=gcc 
-CFLAGS=-W -Wall -fPIC -lrt
+CFLAGS=-W -Wall -fPIC
 CFLAGS+=$(OPT)
+LDFLAGS=-lrt
 
 ifeq ($(DEBUG),YES)
      CFLAGS += -g
