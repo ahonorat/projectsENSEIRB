@@ -15,25 +15,26 @@ enum status_t {
 };
 
 enum signal_t {
-  THREAD_SIGHUP,
-  THREAD_SIGINT,
-  THREAD_SIGQUIT,
-  THREAD_SIGILL,
-  THREAD_SIGABRT,
-  THREAD_SIGFPE,
-  THREAD_SIGKILL,
-  THREAD_SIGSEGV,
-  THREAD_SIGPIPE,
-  THREAD_SIGALRM,
-  THREAD_SIGTERM,
-  THREAD_SIGUSR1,
-  THREAD_SIGUSR2,
-  THREAD_SIGCHLD,
-  THREAD_SIGCONT,
-  THREAD_SIGSTOP,
-  THREAD_SIGTSTP,
-  THREAD_SIGTTIN,
-  THREAD_SIGTTOU
+  THREAD_SIGHUP=0, // controlling terminal has been closed.
+  THREAD_SIGINT=1, // ctrl+C from controlling terminal.
+  THREAD_SIGQUIT=2, // ctrl+\ with core dump
+  THREAD_SIGILL=3, // illegal instruction
+  THREAD_SIGABRT=4, // tell the process to abort
+  THREAD_SIGFPE=5, // floating point exception (ex:divide by 0) 
+  THREAD_SIGKILL=6, // terminate IMMEDIATELY a process #nocaught#noignored
+  THREAD_SIGSEGV=7, // seg fault violation
+  THREAD_SIGPIPE=8, // sent when trying to write to a pipe, without connected process
+					// on the other end.
+  THREAD_SIGALRM=9, // sent when time limit specified elapses.
+  THREAD_SIGTERM=10, // nearly identical to SIGINT but without ctrl+c
+  THREAD_SIGUSR1=11, // user defined conditions
+  THREAD_SIGUSR2=12, // user defined conditions
+  THREAD_SIGCHLD=13, // modification of a child process status (terminates, interrupted, resumes)
+  THREAD_SIGCONT=14, // continue a pause process
+  THREAD_SIGSTOP=15, // pauses the signal #nocaught#noignored
+  THREAD_SIGTSTP=16, // ctrl + z : pausing from controlling terminal
+  THREAD_SIGTTIN=17, // received when trying to readin the tty while in background #nevercalledwithoutterminal
+  THREAD_SIGTTOU=18 // received when trying to write out in the tty while in background
 };
 
 
