@@ -16,15 +16,16 @@ int get_signal(unsigned int listsig){
 }
 
 int thread_kill(thread_t thread,int sig){
-		add_signal(thread->signal, sig);
-		return 1;
+  add_signal(&thread->signal, sig);
+  return 1;
 }
 
-int thread_sigaction(int signum,void (*new_sa_handler)(int),void (*old_sa_handler)(int));
+int thread_sigaction(int signum,void (*new_sa_handler)(int),void (*old_sa_handler)(int)){
   if(new_sa_handler)
     new_sa_handler(signum); 
+  struct thread *thread = thread_self();
   thread->signal=0;
-
+  
   return 1;
 }
 

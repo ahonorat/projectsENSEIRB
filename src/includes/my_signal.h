@@ -2,7 +2,7 @@
 #define __MY_SIGNAL_H__
 
 #include "thread.h"
-
+#include "common_types.h"
 
 int thread_kill(thread_t thread,int sig);
 
