@@ -1,12 +1,12 @@
 #ifndef __COMMON_TYPES_H__
 #define __COMMON_TYPES_H__
 
-#include "list.h"
-#include <valgrind/valgrind.h>
 #include <ucontext.h>
+#include <valgrind/valgrind.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "list.h"
 
 
 enum status_t {
@@ -35,7 +35,6 @@ enum signal_t {
   THREAD_SIGTTIN,
   THREAD_SIGTTOU
 };
-
 
 
 struct thread_list
