@@ -1,13 +1,16 @@
 /* A simple signal-based preemption module. Incompatible with any program wishing to use the alarm. */
 #include <time.h>
 #include <signal.h>
+#include <stdio.h>
 #include "thread.h"
-#define TIMESLICE ((long long) 10000001)
+#define TIMESLICE ((long long) 100000001)
 
 static struct sigaction old;
-struct itimerspec its;
+struct itimerspec its, disarm;
 timer_t timerid;
 struct sigevent sev;
+
+int enablestatus = 0;
 
 
 static void set_alarm (long long time_slice)
@@ -22,15 +25,13 @@ static void set_alarm (long long time_slice)
 
 void preempt(int signum)
 {
-  set_alarm(TIMESLICE);
-  
   if(signum == SIGALRM)
   {
+    set_alarm(TIMESLICE);
     thread_yield();
   }
 }
 
-void thread_preemption_init() __attribute__((constructor));
 void thread_preemption_init()
 {
   struct sigaction new;
@@ -39,17 +40,29 @@ void thread_preemption_init()
   new.sa_flags = 0;
   sigaction(SIGALRM, &new, &old);
 
+  disarm.it_value.tv_sec = 0;
+  disarm.it_value.tv_nsec = 0L;
+  disarm.it_interval.tv_sec = 0;
+  disarm.it_interval.tv_nsec = 0L;
+
   sev.sigev_notify = SIGEV_SIGNAL;
   sev.sigev_signo = SIGALRM;
   sev.sigev_value.sival_ptr = &timerid;
   timer_create(CLOCK_THREAD_CPUTIME_ID, &sev, &timerid);
-
-  set_alarm(TIMESLICE);
-}
+  }
 
 
 void thread_preemption_quit() __attribute__((destructor));
 void thread_preemption_quit()
 {
   sigaction(SIGALRM, &old, NULL);
+}
+
+void thread_preemption_disable()
+{
+  timer_settime(timerid, 0, &disarm,NULL);
+}
+void thread_preemption_enable()
+{
+  set_alarm(TIMESLICE);
 }

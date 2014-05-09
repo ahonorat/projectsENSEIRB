@@ -1,6 +1,6 @@
 #include "ordo.h"
 #include "thread.h"
-
+#include "preemption.h"
 #define SIZE_THREAD 64*1024
 
 /* Prototypes des variables globales et fonctions locales */
@@ -50,9 +50,11 @@ int thread_construct(struct thread *th, int is_main){
 }
 
 void run_thread(struct thread * next_running_thread){
+  thread_preemption_disable();
   if(next_running_thread == NULL)
     setcontext(&exiting_context);
   running = next_running_thread;
+  thread_preemption_enable();
   setcontext(&next_running_thread->uc);
 }
 
@@ -72,9 +74,12 @@ static void thread_init(){
   sleeping_list.num_children = 0;
   running = (struct thread *)malloc(sizeof(struct thread));
   thread_construct(running, 1);
+  thread_preemption_init();
+  thread_preemption_enable();
 }
 
 static void thread_quit(){
+  thread_preemption_disable();
   if(running){
     thread_destruct(running);
     free(running);
@@ -95,7 +100,7 @@ extern struct thread * thread_self(void){
 extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funcarg){
  
   ucontext_t * uc;
-
+  thread_preemption_disable();
   //allocation newthread
   *newthread = (struct thread *) malloc(sizeof(struct thread));
   if(!newthread){
@@ -112,22 +117,23 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
   makecontext(uc, (void (*)(void)) th_intermediaire, 2, func, funcarg);
   (*newthread)->retval = NULL;
   add_in_list(&ready_list, *newthread);
-  // appel de yield
-  if (thread_yield()){
-    perror("erreur appel yield dans thread_create");
-    return -1;
-  }
+
+  thread_preemption_enable();
   return 0;
 }
 
 
 
 extern int thread_yield(void){
+  thread_preemption_disable();
   //place le thread courant dans la liste des threads ready
   add_in_list(&ready_list, running);
   struct thread * top = chose_next_running_thread(&ready_list);
   struct thread * prev = running;
   running = top;
+  thread_preemption_enable();
+  if(top == prev)
+    return -1;
   return swapcontext(&prev->uc, &top->uc);
 }
 
@@ -147,11 +153,13 @@ extern int thread_join(thread_t thread, void **retval){
   } else  
     thread->parent = running;
   if (thread->status != WAITING) {
+    thread_preemption_disable();
     list_del(&running->node);
     add_in_list(&sleeping_list,running);
     struct thread * top = chose_next_running_thread(&ready_list);
-    struct thread * prev = running;  
+    struct thread * prev = running;
     running = top;
+    thread_preemption_enable();
     swapcontext(&prev->uc, &top->uc);
   }
   assert (thread->status == WAITING);
@@ -163,6 +171,7 @@ extern int thread_join(thread_t thread, void **retval){
 
 
 extern void thread_exit(void *retval){
+  thread_preemption_disable();
   running->retval = retval;
   running->status = WAITING;
   list_del(&running->node);
@@ -178,15 +187,15 @@ extern void thread_exit(void *retval){
       valid_thread = chose_next_running_thread(&ready_list);
     running = valid_thread;
     getcontext(&exiting_context);
+    thread_preemption_enable();
     swapcontext(&exiting_context, &valid_thread->uc);
     exit(0);
   } else {
     if (running->parent != NULL){
       list_del(&running->parent->node);
-      run_thread(running->parent);
-    } else {
-      run_thread(chose_next_running_thread(&ready_list));
     } 
+    thread_preemption_enable();
+    run_thread(chose_next_running_thread(&ready_list));
   }
 }
 
