@@ -12,7 +12,7 @@ all:$(OBJS)
 
 
 ../../obj/%.o:%.c
-	@$(CC) -MMD $(CFLAGS) -c $< -o $@
+	@$(CC) -MMD $(CFLAGS) -c $< -o $@ $(LDFLAGS)
 	@cp ../../$(OBJ_DIR)/$*.d ./$*.P; \
 		sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 			-e '/^$$/ d' -e 's/$$/ :/' < ../../$(OBJ_DIR)/$*.d >> ./$*.P; \

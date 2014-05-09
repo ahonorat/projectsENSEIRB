@@ -19,12 +19,12 @@ endif
 
 ifeq ($(OPT),-DUSE_PTHREAD)
 ../../$(BIN_DIR)/%_pthread:%.c
-	@$(CC) $(CFLAGS) $< -o $@
+	@$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS)
 	$(info $(TEXT1))
 	$(info $*.c)
 else
 ../../$(BIN_DIR)/%:%.c
-	@$(CC) $(CFLAGS) $< $(HERE)/../../$(LIB_DIR)/thread.so -o $@
+	@$(CC) $(CFLAGS) $< $(HERE)/../../$(LIB_DIR)/thread.so -o $@ $(LDFLAGS)
 	$(info $(TEXT2))
 	$(info $*.c)
 endif

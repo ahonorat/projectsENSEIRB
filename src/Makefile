@@ -38,7 +38,7 @@ obj:
 	@make -s -C others
 
 ../$(LIB_DIR)/thread.so: $(OBJS)
-	@$(CC) $(CFLAGS) -o ../$(LIB_DIR)/thread.so -shared $(OBJS)
+	@$(CC) $(CFLAGS) -o ../$(LIB_DIR)/thread.so -shared $(OBJS) $(LDFLAGS)
 	$(info $(TEXT3))
 
 #règles pour le main
@@ -52,7 +52,7 @@ endif
 	$(info $(TEXT1))
 else 
 ../bin/example: $(OBJS) $(SRC)
-	@$(CC) $(CFLAGS) $(SRC) $(HERE)/../$(LIB_DIR)/thread.so -o $@
+	@$(CC) $(CFLAGS) $(SRC) $(HERE)/../$(LIB_DIR)/thread.so -o $@ $(LDFLAGS)
 ifeq ($(DEBUG),YES)
 	$(info !!Sources compiled for debug!!)
 endif
