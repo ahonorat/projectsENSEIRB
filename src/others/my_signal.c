@@ -12,7 +12,17 @@ int check_signal(unsigned int listsig, int sig){
 }
 
 int get_signal(unsigned int listsig){
-	return 0;
+  int i=0;
+  for(i=0;i<19;i++){
+    if(check_signal(listsig,i)){
+      return i;
+    }
+  }
+  //aucun signal, le thread a -1
+  return -1;
+}
+void signal_done(unsigned int *listsig){
+  *listsig = 0;
 }
 
 int thread_kill(thread_t thread,int sig){
@@ -21,11 +31,13 @@ int thread_kill(thread_t thread,int sig){
 }
 
 int thread_sigaction(int signum,void (*new_sa_handler)(int),void (*old_sa_handler)(int)){
-  if(new_sa_handler)
-    new_sa_handler(signum); 
   struct thread *thread = thread_self();
-  thread->signal=0;
   
+  if(get_signal(thread->signal) == signum){
+    if(new_sa_handler)
+      new_sa_handler(signum); 
+    signal_done(&thread->signal);
+  }
   return 1;
 }
 

@@ -31,6 +31,7 @@ int thread_construct(struct thread *th, int is_main){
   th->is_main = is_main;
   th->parent = NULL;
   ucontext_t * uc = &th->uc;
+  
   if(!is_main){
     uc->uc_stack.ss_size = SIZE_THREAD;
     uc->uc_stack.ss_sp = malloc(uc->uc_stack.ss_size);
@@ -98,17 +99,19 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 
   //allocation newthread
   *newthread = (struct thread *) malloc(sizeof(struct thread));
+  
   if(!newthread){
     perror("malloc newthread dans thread_create");
     return -1;
   }
- 
+  
   // initialisation newthread
   uc = &(*newthread)->uc;
   if(thread_construct(*newthread, 0)==-1){
     free(newthread);
     return -1;
   }
+  
   makecontext(uc, (void (*)(void)) th_intermediaire, 2, func, funcarg);
   (*newthread)->retval = NULL;
   add_in_list(&ready_list, *newthread);
