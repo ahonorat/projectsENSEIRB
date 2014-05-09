@@ -1,7 +1,7 @@
 /* A simple signal-based preemption module. Incompatible with any program wishing to use the alarm. */
 #include <time.h>
 #include <signal.h>
-#include <thread.h>
+#include "thread.h"
 #define TIMESLICE ((long long) 10000001)
 
 static struct sigaction old;
