@@ -54,3 +54,5 @@ echo -e "\nend of diff\n"
 
 
 rm out t_out
+
+#./32-switch-many-join 56 65 | grep ' us' | sed 's/^.* \([0-9]*\) us$/\1/'

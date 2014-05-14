@@ -6,12 +6,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <pthread.h>
 #include "list.h"
 
 
 enum status_t {
   READY,
-  WAITING
+  WAITING,
+  TO_CANCEL
 };
 
 enum signal_t {
@@ -46,6 +48,9 @@ struct thread_list
 
 struct thread{
   int is_main;
+  int is_cancelable;
+  int has_handler;
+  int adding_type;
   struct thread * parent;
   struct list_node node;
   ucontext_t uc;

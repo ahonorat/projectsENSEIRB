@@ -1,7 +1,7 @@
 #include "ordo.h"
 #include "thread.h"
 #include "preemption.h"
-#define SIZE_THREAD 64*1024
+#define SIZE_THREAD (64*1024)
 
 /* Prototypes des variables globales et fonctions locales */
 int thread_construct(struct thread *th, int is_main);
@@ -29,6 +29,8 @@ void thread_destruct(struct thread * th){
 int thread_construct(struct thread *th, int is_main){
   th->status = READY;
   th->is_main = is_main;
+  th->is_cancelable = 1;
+  th->has_handler = 0;
   th->parent = NULL;
   ucontext_t * uc = &th->uc;
   if(!is_main){
@@ -96,8 +98,13 @@ extern struct thread * thread_self(void){
   return running;
 }
 
-
 extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funcarg){
+  // appel avec ajout en FIFO
+  return thread_create_a(newthread, func, funcarg, 0);
+}
+
+
+extern int thread_create_a(thread_t *newthread, void *(*func)(void *), void *funcarg, int adding_type){
  
   ucontext_t * uc;
   thread_preemption_disable();
@@ -110,6 +117,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
  
   // initialisation newthread
   uc = &(*newthread)->uc;
+  (*newthread)->adding_type = adding_type;
   if(thread_construct(*newthread, 0)==-1){
     free(newthread);
     return -1;
@@ -145,6 +153,8 @@ extern int thread_join(thread_t thread, void **retval){
   } else if (thread == running){
     perror("impossible de se joindre soi-même");
     return 1;
+    // section suivante destinée à savoir si un thread existe ou non
+    // trop lente à l'exécution : parcours de toutes les listes
     /*
   } else if ((exist_thread(&ready_list, thread) == 0) && (exist_thread(&waiting_list, thread) == 0) && (exist_thread(&sleeping_list, thread) == 0)){
     perror("thread non existant");
@@ -198,5 +208,35 @@ extern void thread_exit(void *retval){
     run_thread(chose_next_running_thread(&ready_list));
   }
 }
+
+
+/* autorise l'annulation ou non d'un thread, par défaut acceptée 
+ * les états acceptés sont PTHREAD_CANCEL_ENABLE
+ * et PTHREAD_CANCEL_ENABLE
+ * retourne erreur sinon
+ */
+extern int thread_setcancelstate(int state, int *oldstate){
+  *oldstate = running->is_cancelable;
+  if (state == PTHREAD_CANCEL_ENABLE || state == PTHREAD_CANCEL_DISABLE){
+    running->is_cancelable = state;
+    return 0;
+  }
+  perror("état d'annulation invalide");
+  return -1;
+}
+
+/* annule le thread en cours au prochain yield sur celui-ci */
+
+extern int thread_cancel(thread_t thread){
+  if (thread == running) {
+    perror("cela a-t-il un sens de s'annuler soi-même ?");
+    return -1;
+  }
+  thread->status = TO_CANCEL;
+  return 0;
+}
+
+
+
 
 #endif
