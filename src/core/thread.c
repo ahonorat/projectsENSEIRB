@@ -4,7 +4,7 @@
 #define SIZE_THREAD (64*1024)
 
 /* Prototypes des variables globales et fonctions locales */
-int thread_construct(struct thread *th, int is_main);
+int thread_construct(struct thread *th, int is_main, int adding_type);
 void run_thread(struct thread * next_running_thread);
 void * th_intermediare(void * res);
 static void thread_init() __attribute__ ((constructor));
@@ -26,9 +26,10 @@ void thread_destruct(struct thread * th){
   }
 }
 
-int thread_construct(struct thread *th, int is_main){
+int thread_construct(struct thread *th, int is_main, int adding_type){
   th->status = READY;
   th->is_main = is_main;
+  th->adding_type = adding_type;
   th->is_cancelable = 1;
   th->has_handler = 0;
   th->parent = NULL;
@@ -74,8 +75,11 @@ static void thread_init(){
   waiting_list.num_children = 0;
   list_head_init(&sleeping_list.children);
   sleeping_list.num_children = 0;
+
+  // initialising main_thread
   running = (struct thread *)malloc(sizeof(struct thread));
-  thread_construct(running, 1);
+  thread_construct(running, 1, 0);
+
   thread_preemption_init();
   thread_preemption_enable();
 }
@@ -117,8 +121,7 @@ extern int thread_create_a(thread_t *newthread, void *(*func)(void *), void *fun
  
   // initialisation newthread
   uc = &(*newthread)->uc;
-  (*newthread)->adding_type = adding_type;
-  if(thread_construct(*newthread, 0)==-1){
+  if(thread_construct(*newthread, 0, adding_type)==-1){
     free(newthread);
     return -1;
   }
