@@ -164,7 +164,6 @@ extern int thread_join(thread_t thread, void **retval){
     thread->parent = running;
   if (thread->status != WAITING) {
     thread_preemption_disable();
-    list_del(&running->node);
     add_in_list(&sleeping_list,running);
     struct thread * top = chose_next_running_thread(&ready_list);
     struct thread * prev = running;
@@ -184,7 +183,6 @@ extern void thread_exit(void *retval){
   thread_preemption_disable();
   running->retval = retval;
   running->status = WAITING;
-  list_del(&running->node);
   add_in_list(&waiting_list, running);
 
   if (running->is_main){
@@ -203,9 +201,11 @@ extern void thread_exit(void *retval){
   } else {
     if (running->parent != NULL){
       list_del(&running->parent->node);
-    } 
+      run_thread(running->parent);
+    } else {
+      run_thread(chose_next_running_thread(&ready_list));
+    }
     thread_preemption_enable();
-    run_thread(chose_next_running_thread(&ready_list));
   }
 }
 
