@@ -90,6 +90,7 @@ static void thread_quit(){
     thread_destruct(running);
     free(running);
   }  
+  thread_preemption_quit();
 }
 
 

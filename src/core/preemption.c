@@ -6,9 +6,9 @@
 #define TIMESLICE ((long long) 100000001)
 
 static struct sigaction old;
-struct itimerspec its, disarm;
-timer_t timerid;
-struct sigevent sev;
+static struct sigevent sev;
+static struct itimerspec its, disarm;
+static timer_t timerid;
 
 int enablestatus = 0;
 
@@ -49,13 +49,12 @@ void thread_preemption_init()
   sev.sigev_signo = SIGALRM;
   sev.sigev_value.sival_ptr = &timerid;
   timer_create(CLOCK_THREAD_CPUTIME_ID, &sev, &timerid);
-  }
+}
 
-
-void thread_preemption_quit() __attribute__((destructor));
 void thread_preemption_quit()
 {
   sigaction(SIGALRM, &old, NULL);
+  timer_delete(timerid);
 }
 
 void thread_preemption_disable()
