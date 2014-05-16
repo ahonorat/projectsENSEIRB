@@ -1,11 +1,11 @@
-#ifndef __MY_SIGNAL_H__
-#define __MY_SIGNAL_H__
+#ifndef __MY_SIGNAL__
+#define __MY_SIGNAL__
 
-#include "thread.h"
-#include "common_types.h"
+#include "manip_list.h"
 
-int thread_kill(thread_t thread,int sig);
-
-int thread_signal(int signum,void (*new_sa_handler)(int));
+void add_signal(unsigned int * listsig, int sig);
+int check_signal(unsigned int listsig, int sig);
+int get_signal(unsigned int listsig);
+void signal_done(unsigned int *listsig);
 
 #endif
