@@ -7,7 +7,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <pthread.h>
+#include <sys/signal.h>
 #include "list.h"
+
 
 
 enum status_t {
@@ -17,26 +19,26 @@ enum status_t {
 };
 
 enum signal_t {
-  THREAD_SIGHUP=15, // controlling terminal has been closed.
-  THREAD_SIGINT=6, // ctrl+C from controlling terminal.
-  THREAD_SIGQUIT=2, // ctrl+\ with core dump
-  THREAD_SIGILL=3, // illegal instruction
-  THREAD_SIGABRT=4, // tell the process to abort
-  THREAD_SIGFPE=5, // floating point exception (ex:divide by 0) 
-  THREAD_SIGKILL=0, // terminate IMMEDIATELY a process #nocaught#noignored
-  THREAD_SIGSEGV=7, // seg fault violation
-  THREAD_SIGPIPE=8, // sent when trying to write to a pipe, without connected process
+  THREAD_SIGHUP=SIGHUP, // controlling terminal has been closed.
+  THREAD_SIGINT=SIGINT, // ctrl+C from controlling terminal.
+  THREAD_SIGQUIT=SIGQUIT, // ctrl+\ with core dump
+  THREAD_SIGILL=SIGILL, // illegal instruction
+  THREAD_SIGABRT=SIGABRT, // tell the process to abort
+  THREAD_SIGFPE=SIGFPE, // floating point exception (ex:divide by 0) 
+  THREAD_SIGKILL=SIGKILL, // terminate IMMEDIATELY a process #nocaught#noignored   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  THREAD_SIGSEGV=SIGSEGV, // seg fault violation
+  THREAD_SIGPIPE=SIGPIPE, // sent when trying to write to a pipe, without connected process
 					// on the other end.
-  THREAD_SIGALRM=9, // sent when time limit specified elapses.
-  THREAD_SIGTERM=10, // nearly identical to SIGINT but without ctrl+c
-  THREAD_SIGUSR1=17, // user defined conditions
-  THREAD_SIGUSR2=18, // user defined conditions
-  THREAD_SIGCHLD=13, // modification of a child process status (terminates, interrupted, resumes)
-  THREAD_SIGCONT=14, // continue a pause process
-  THREAD_SIGSTOP=1, // pauses the signal #nocaught#noignored
-  THREAD_SIGTSTP=16, // ctrl + z : pausing from controlling terminal
-  THREAD_SIGTTIN=11, // received when trying to readin the tty while in background #nevercalledwithoutterminal
-  THREAD_SIGTTOU=12 // received when trying to write out in the tty while in background
+  THREAD_SIGALRM=SIGALRM, // sent when time limit specified elapses.
+  THREAD_SIGTERM=SIGTERM, // nearly identical to SIGINT but without ctrl+c
+  THREAD_SIGUSR1=SIGUSR1, // user defined conditions                 ------------------------------------------------------------
+  THREAD_SIGUSR2=SIGUSR2, // user defined conditions                 ------------------------------------------------------------
+  THREAD_SIGCHLD=SIGCHLD, // modification of a child process status (terminates, interrupted, resumes)
+  THREAD_SIGCONT=SIGCONT, // continue a pause process
+  THREAD_SIGSTOP=SIGSTOP, // pauses the signal #nocaught#noignored                    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  THREAD_SIGTSTP=SIGTSTP, // ctrl + z : pausing from controlling terminal
+  THREAD_SIGTTIN=SIGTTIN, // received when trying to readin the tty while in background #nevercalledwithoutterminal
+  THREAD_SIGTTOU=SIGTTOU // received when trying to write out in the tty while in background
 };
 
 
