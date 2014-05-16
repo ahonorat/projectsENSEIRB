@@ -13,15 +13,29 @@ int check_signal(unsigned int listsig, int sig){
 }
 
 int get_signal(unsigned int listsig){
-  int i=0;
-  for(i=0;i<19;i++){
+  if(check_signal(listsig,THREAD_SIGKILL))
+    return THREAD_SIGKILL;
+  if(check_signal(listsig,THREAD_SIGKILL))
+    return THREAD_SIGSTOP;
+  int i,k = 0;
+
+  for(i = 1; i < 23; i++){
     if(check_signal(listsig,i)){
-      return i;
+      k = i;
+      if ((k == THREAD_SIGUSR1) || (k == THREAD_SIGUSR2)) // traitement des sig user après les autres
+        k = 0;
+      if (k != 0)
+        return k;
     }
   }
-  //aucun signal, le thread a -1
-  return -1;
+  if(check_signal(listsig,THREAD_SIGUSR1))
+    return THREAD_SIGUSR1;
+  if(check_signal(listsig,THREAD_SIGUSR2))
+    return THREAD_SIGUSR2;
+
+  return 0;
 }
+
 void signal_done(unsigned int *listsig){
   *listsig = 0;
 }
