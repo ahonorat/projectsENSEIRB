@@ -55,7 +55,10 @@ int thread_construct(struct thread *th, int is_main, int adding_type){
 void run_thread(struct thread * next_running_thread){
   thread_preemption_disable();
   if(next_running_thread == NULL)
+  {
+    running = NULL;
     setcontext(&exiting_context);
+  }
   running = next_running_thread;
   thread_preemption_enable();
   setcontext(&next_running_thread->uc);
@@ -89,7 +92,16 @@ static void thread_quit(){
   if(running){
     thread_destruct(running);
     free(running);
-  }  
+  }
+  struct thread_list * list[] = {&waiting_list, &sleeping_list, &ready_list};
+  struct thread * thread;
+  int i;
+  for(i = 0; i < 3; ++i){
+    while(NULL != (thread = pop_from_list(list[i]))){
+      thread_destruct(thread);
+      free(thread);
+    }
+  }
   thread_preemption_quit();
 }
 
