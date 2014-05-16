@@ -139,13 +139,13 @@ extern int thread_create_a(thread_t *newthread, void *(*func)(void *), void *fun
 extern int thread_yield(void){
   thread_preemption_disable();
   //place le thread courant dans la liste des threads ready
-  add_in_list(&ready_list, running);
   struct thread * top = chose_next_running_thread(&ready_list);
+  if (top == NULL)
+    return 0;
+  add_in_list(&ready_list, running);
   struct thread * prev = running;
   running = top;
   thread_preemption_enable();
-  if(top == prev)
-    return -1;
   return swapcontext(&prev->uc, &top->uc);
 }
 
