@@ -150,7 +150,7 @@ extern int thread_create_a(thread_t *newthread, void *(*func)(void *), void *fun
   makecontext(uc, (void (*)(void)) th_intermediaire, 2, func, funcarg);
   (*newthread)->retval = NULL;
   add_in_list(&ready_list, *newthread);
-
+  thread_yield();
   thread_preemption_enable();
   return 0;
 }
@@ -167,7 +167,6 @@ extern int thread_yield(void){
   struct thread * prev = running;
   running = top;
   int sig = get_signal(running->signal);
-  printf("signal :%d\n",sig);
   if(running->tab_signal[sig])
     running->tab_signal[sig](sig);
   signal_done(&running->signal);
