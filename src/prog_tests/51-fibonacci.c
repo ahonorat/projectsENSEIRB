@@ -25,9 +25,9 @@ static void * fibo(void *_value)
   if (value < 3)
     return (void*) 1;
 
-  err = thread_create(&th, fibo, (void*)(value-1));
+  err = thread_create_a(&th, fibo, (void*)(value-1),1);
   assert(!err);
-  err = thread_create(&th2, fibo, (void*)(value-2));
+  err = thread_create_a(&th2, fibo, (void*)(value-2),1);
   assert(!err);
 
   err = thread_join(th, &res);

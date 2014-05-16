@@ -6,6 +6,10 @@ struct thread * pop_from_list(struct thread_list *l){
   return list_pop(&l->children, struct thread, node); 
 }
 
+void add_in_list_head(struct thread_list *l, struct thread *thread){
+    l->num_children++;
+    list_add(&l->children, &thread->node);
+}
 
 void add_in_list_tail(struct thread_list *l, struct thread *thread){
     l->num_children++;
