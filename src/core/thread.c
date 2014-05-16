@@ -35,7 +35,7 @@ int thread_construct(struct thread *th, int is_main, int adding_type){
   th->signal = 0;
   th->is_main = is_main;
   th->adding_type = adding_type;
-  th->is_cancelable = 1;
+  th->is_cancelable = PTHREAD_CANCEL_ENABLE;
   th->parent = NULL;
   ucontext_t * uc = &th->uc;
   int i;
@@ -161,6 +161,13 @@ extern int thread_yield(void){
   thread_preemption_disable();
   //place le thread courant dans la liste des threads ready
   struct thread * top = chose_next_running_thread(&ready_list);
+  while (top != NULL && top->status == TO_CANCEL){
+    top->status = WAITING;
+    top->retval = PTHREAD_CANCELED;
+    list_del(&top->node);
+    add_in_list(&waiting_list,top);
+    top = chose_next_running_thread(&ready_list);
+  }
   if (top == NULL)
     return 0;
   add_in_list(&ready_list, running);
@@ -191,7 +198,11 @@ extern int thread_join(thread_t thread, void **retval){
     */
   } else  
     thread->parent = running;
-  if (thread->status != WAITING) {
+  if (thread->status == TO_CANCEL) {
+    list_del(&thread->node);
+    thread->status = WAITING;
+    thread->retval = PTHREAD_CANCELED;
+  } else if (thread->status != WAITING) {
     thread_preemption_disable();
     add_in_list(&sleeping_list,running);
     struct thread * top = chose_next_running_thread(&ready_list);
@@ -245,7 +256,8 @@ extern void thread_exit(void *retval){
  * retourne erreur sinon
  */
 extern int thread_setcancelstate(int state, int *oldstate){
-  *oldstate = running->is_cancelable;
+  if (oldstate)
+    *oldstate = running->is_cancelable;
   if (state == PTHREAD_CANCEL_ENABLE || state == PTHREAD_CANCEL_DISABLE){
     running->is_cancelable = state;
     return 0;
