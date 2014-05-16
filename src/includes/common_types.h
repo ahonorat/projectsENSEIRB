@@ -17,7 +17,7 @@
 enum status_t {
   READY,
   WAITING,
-  TO_CANCEL
+  CANCELED
 };
 
 #define NB_SIGNALS 24
@@ -55,6 +55,7 @@ struct thread_list
 struct thread{
   int is_main;
   int is_cancelable;
+  int to_cancel;
   int adding_type;
   struct thread * parent;
   struct list_node node;

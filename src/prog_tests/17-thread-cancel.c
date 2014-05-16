@@ -21,8 +21,8 @@ thread_func(void *ignored_argument)
     handle_error_en(s, "pthread_setcancelstate");
 
   printf("thread_func(): started; cancellation disabled\n");
-  sleep(5);
-  //thread_yield();
+  //sleep(5);
+  thread_yield();
 
   printf("thread_func(): about to enable cancellation\n");
 
@@ -32,7 +32,8 @@ thread_func(void *ignored_argument)
 
   /* sleep() is a cancellation point */
 
-  sleep(1000);        /* Should get canceled while we sleep */
+  sleep(2);        /* Should get canceled while we sleep */
+  thread_yield();
 
   /* Should never get here */
 
@@ -52,20 +53,18 @@ main(void)
   if (s != 0)
     handle_error_en(s, "pthread_create");
 
-  sleep(2);           /* Give thread a chance to get started */
+  sleep(1);           /* Give thread a chance to get started */
 
   printf("main(): sending cancellation request\n");
   s = thread_cancel(thr);
   if (s != 0)
     handle_error_en(s, "pthread_cancel");
-  /* thread_yield(); */
-  /* sleep(1); */
-  /* thread_yield(); */
-  /* printf("main(): resending cancellation request\n"); */
-  /* s = thread_cancel(thr); */
-  /* if (s != 0) */
-  /*   handle_error_en(s, "pthread_cancel"); */
-  /* thread_yield(); */
+  thread_yield();
+  printf("main(): resending cancellation request\n");
+  s = thread_cancel(thr);
+  if (s != 0)
+    handle_error_en(s, "pthread_cancel");
+  thread_yield();
 
   /* Join with thread to see what its exit status was */
 

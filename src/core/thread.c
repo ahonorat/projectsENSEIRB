@@ -36,6 +36,7 @@ int thread_construct(struct thread *th, int is_main, int adding_type){
   th->is_main = is_main;
   th->adding_type = adding_type;
   th->is_cancelable = PTHREAD_CANCEL_ENABLE;
+  th->to_cancel = 0;
   th->parent = NULL;
   ucontext_t * uc = &th->uc;
   int i;
@@ -162,8 +163,8 @@ extern int thread_yield(void){
   thread_preemption_disable();
   //place le thread courant dans la liste des threads ready
   struct thread * top = chose_next_running_thread(&ready_list);
-  while (top != NULL && top->status == TO_CANCEL){
-    top->status = WAITING;
+  while (top != NULL && top->to_cancel && top->is_cancelable == PTHREAD_CANCEL_ENABLE){
+    top->status = CANCELED;
     top->retval = PTHREAD_CANCELED;
     list_del(&top->node);
     add_in_list(&waiting_list,top);
@@ -201,11 +202,11 @@ extern int thread_join(thread_t thread, void **retval){
   } else  
     thread->parent = running;
   thread_preemption_disable();
-  if (thread->status == TO_CANCEL) {
+  if (thread->to_cancel && thread->is_cancelable == PTHREAD_CANCEL_ENABLE) {
     list_del(&thread->node);
-    thread->status = WAITING;
+    thread->status = CANCELED;
     thread->retval = PTHREAD_CANCELED;
-  } else if (thread->status != WAITING) {
+  } else if (thread->status == READY) {
     add_in_list(&sleeping_list,running);
     struct thread * top = chose_next_running_thread(&ready_list);
     struct thread * prev = running;
@@ -213,7 +214,7 @@ extern int thread_join(thread_t thread, void **retval){
     swapcontext(&prev->uc, &top->uc);
   }
   thread_preemption_enable();
-  assert (thread->status == WAITING);
+  assert (thread->status != READY);
   *retval = thread->retval;
   thread_destruct(thread);
   free(thread);
@@ -274,7 +275,7 @@ extern int thread_cancel(thread_t thread){
     perror("cela a-t-il un sens de s'annuler soi-même ?");
     return -1;
   }
-  thread->status = TO_CANCEL;
+  thread->to_cancel = 1;
   return 0;
 }
 
