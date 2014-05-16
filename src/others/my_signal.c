@@ -1,4 +1,5 @@
 #include "common_types.h"
+#include "my_signal.h"
 
 
 void rm_signal(unsigned int * listsig, int sig){  

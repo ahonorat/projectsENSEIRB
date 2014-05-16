@@ -1,22 +1,26 @@
 #ifndef __COMMON_TYPES_H__
 #define __COMMON_TYPES_H__
 
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE /* for pthread_yield() */
+#endif
+
 #include <ucontext.h>
 #include <valgrind/valgrind.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <pthread.h>
-#include <sys/signal.h>
+#include <signal.h>
 #include "list.h"
-
-#define NB_SIGNALS 24
 
 enum status_t {
   READY,
   WAITING,
   TO_CANCEL
 };
+
+#define NB_SIGNALS 24
 
 enum signal_t {
   THREAD_SIGHUP=SIGHUP, // controlling terminal has been closed.
@@ -55,7 +59,6 @@ struct thread{
   struct thread * parent;
   struct list_node node;
   ucontext_t uc;
-  enum signal_t has_handler;
   enum signal_t signal;
   enum status_t status;
   void * retval;

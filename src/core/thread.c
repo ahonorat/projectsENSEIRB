@@ -1,7 +1,10 @@
+#include <signal.h>
+
 #include "ordo.h"
 #include "thread.h"
 #include "preemption.h"
 #include "my_signal.h"
+
 #define SIZE_THREAD (64*1024)
 
 /* Prototypes des variables globales et fonctions locales */
@@ -29,13 +32,15 @@ void thread_destruct(struct thread * th){
 
 int thread_construct(struct thread *th, int is_main, int adding_type){
   th->status = READY;
+  th->signal = 0;
   th->is_main = is_main;
   th->adding_type = adding_type;
   th->is_cancelable = 1;
-  th->has_handler = 0;
   th->parent = NULL;
   ucontext_t * uc = &th->uc;
-  
+  int i;
+  for(i = 0; i<NB_SIGNALS; i++)
+    th->tab_signal[i]=NULL;
   if(!is_main){
     uc->uc_stack.ss_size = SIZE_THREAD;
     uc->uc_stack.ss_sp = malloc(uc->uc_stack.ss_size);
@@ -161,10 +166,11 @@ extern int thread_yield(void){
   add_in_list(&ready_list, running);
   struct thread * prev = running;
   running = top;
-  int sig = get_signal(thread->signal);
-  if(top->tab_signal[sig])
-    tab_signal[sig](sig);
-  signal_done(&thread->signal);
+  int sig = get_signal(running->signal);
+  printf("signal :%d\n",sig);
+  if(running->tab_signal[sig])
+    running->tab_signal[sig](sig);
+  signal_done(&running->signal);
   thread_preemption_enable();
   return swapcontext(&prev->uc, &top->uc);
 }
@@ -261,19 +267,15 @@ extern int thread_cancel(thread_t thread){
 }
 
 int thread_kill(thread_t thread,int sig){
-  if (check_signal(thread->has_handler, sig))
+  if (thread->tab_signal[sig])
     add_signal(&thread->signal, sig);
   return 0;
 }
 
-int thread_signal(int signum,void (*new_sa_handler)(int)){
+extern void (*thread_signal(int signum,void (*new_sa_handler)(int)))(int){
   struct thread *thread = thread_self();
-  if (new_sa_handler == NULL)
-    rm_signal(&thread->has_handler, signum);
-  else
-    add_signal(&thread->has_handler, signum);
   thread->tab_signal[signum] = new_sa_handler;
-  return 0;
+  return new_sa_handler;
 }
 
 

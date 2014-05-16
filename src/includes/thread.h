@@ -1,7 +1,12 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
+
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE /* for pthread_yield() */
+#endif
+
 #include <pthread.h>
-#include <sys/signal.h>
+#include <signal.h>
 
 #ifndef USE_PTHREAD
 
@@ -61,15 +66,12 @@ extern int thread_cancel(thread_t thread);
 
 extern int thread_kill(thread_t thread,int sig);
 
-extern int thread_signal(int signum,void (*new_sa_handler)(int));
+extern void (*thread_signal(int signum,void (*new_sa_handler)(int)))(int);
 
 
 #else /* USE_PTHREAD */
 
 /* Si on compile avec -DUSE_PTHREAD, ce sont les pthreads qui sont utilisés */
-# ifndef _GNU_SOURCE
-#  define _GNU_SOURCE /* for pthread_yield() */
-# endif
 
 # define thread_t pthread_t
 # define thread_self pthread_self
