@@ -1,6 +1,7 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 #include <pthread.h>
+#include <sys/signal.h>
 
 #ifndef USE_PTHREAD
 
@@ -10,6 +11,7 @@
  *     (consommation mémoire, cout d'allocation, ...).
  */
 typedef struct thread * thread_t;
+
 
 /* recuperer l'identifiant du thread courant.
  */
@@ -57,6 +59,11 @@ extern int thread_setcancelstate(int state, int *oldstate);
 
 extern int thread_cancel(thread_t thread);
 
+extern int thread_kill(thread_t thread,int sig);
+
+extern int thread_signal(int signum,void (*new_sa_handler)(int));
+
+
 #else /* USE_PTHREAD */
 
 /* Si on compile avec -DUSE_PTHREAD, ce sont les pthreads qui sont utilisés */
@@ -73,6 +80,8 @@ extern int thread_cancel(thread_t thread);
 # define thread_exit pthread_exit
 # define thread_setcancelstate pthread_setcancelstate
 # define thread_cancel pthread_cancel
+# define thread_kill pthread_kill
+# define thread_signal signal
 
 #endif /* USE_PTHREAD */
 
