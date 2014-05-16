@@ -72,6 +72,7 @@ void run_thread(struct thread * next_running_thread){
 }
 
 void * th_intermediaire(void *(*func)(void *), void *funcarg){
+  thread_preemption_enable();
   void * res = func(funcarg);
   thread_exit(res);
   assert(0); //on n'est pas censé arriver là
@@ -177,8 +178,9 @@ extern int thread_yield(void){
   if(running->tab_signal[sig])
     running->tab_signal[sig](sig);
   signal_done(&running->signal);
+  int err = swapcontext(&prev->uc, &top->uc);
   thread_preemption_enable();
-  return swapcontext(&prev->uc, &top->uc);
+  return err;
 }
 
 
@@ -198,19 +200,19 @@ extern int thread_join(thread_t thread, void **retval){
     */
   } else  
     thread->parent = running;
+  thread_preemption_disable();
   if (thread->status == TO_CANCEL) {
     list_del(&thread->node);
     thread->status = WAITING;
     thread->retval = PTHREAD_CANCELED;
   } else if (thread->status != WAITING) {
-    thread_preemption_disable();
     add_in_list(&sleeping_list,running);
     struct thread * top = chose_next_running_thread(&ready_list);
     struct thread * prev = running;
     running = top;
-    thread_preemption_enable();
     swapcontext(&prev->uc, &top->uc);
   }
+  thread_preemption_enable();
   assert (thread->status == WAITING);
   *retval = thread->retval;
   thread_destruct(thread);
@@ -245,7 +247,6 @@ extern void thread_exit(void *retval){
     } else {
       run_thread(chose_next_running_thread(&ready_list));
     }
-    thread_preemption_enable();
   }
 }
 

@@ -4,7 +4,7 @@
 
 #include "thread.h"
 
-#define TIMESLICE ((long long) 100000001)
+#define TIMESLICE ((long long) 5e6)
 
 static struct sigaction old;
 static struct sigevent sev;
