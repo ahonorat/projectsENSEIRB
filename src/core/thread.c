@@ -1,6 +1,7 @@
 #include "ordo.h"
 #include "thread.h"
 #include "preemption.h"
+#include "my_signal.h"
 #define SIZE_THREAD (64*1024)
 
 /* Prototypes des variables globales et fonctions locales */
@@ -160,6 +161,10 @@ extern int thread_yield(void){
   add_in_list(&ready_list, running);
   struct thread * prev = running;
   running = top;
+  int sig = get_signal(thread->signal);
+  if(top->tab_signal[sig])
+    tab_signal[sig](sig);
+  signal_done(&thread->signal);
   thread_preemption_enable();
   return swapcontext(&prev->uc, &top->uc);
 }
@@ -252,6 +257,22 @@ extern int thread_cancel(thread_t thread){
     return -1;
   }
   thread->status = TO_CANCEL;
+  return 0;
+}
+
+int thread_kill(thread_t thread,int sig){
+  if (check_signal(thread->has_handler, sig))
+    add_signal(&thread->signal, sig);
+  return 0;
+}
+
+int thread_signal(int signum,void (*new_sa_handler)(int)){
+  struct thread *thread = thread_self();
+  if (new_sa_handler == NULL)
+    rm_signal(&thread->has_handler, signum);
+  else
+    add_signal(&thread->has_handler, signum);
+  thread->tab_signal[signum] = new_sa_handler;
   return 0;
 }
 

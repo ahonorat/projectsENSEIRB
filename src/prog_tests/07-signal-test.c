@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "my_signal.h"
 #include "thread.h"
 
 static void * thfunc(void* thread){

@@ -10,7 +10,7 @@
 #include <sys/signal.h>
 #include "list.h"
 
-
+#define NB_SIGNALS 24
 
 enum status_t {
   READY,
@@ -51,14 +51,15 @@ struct thread_list
 struct thread{
   int is_main;
   int is_cancelable;
-  int has_handler;
   int adding_type;
   struct thread * parent;
   struct list_node node;
   ucontext_t uc;
+  enum signal_t has_handler;
   enum signal_t signal;
   enum status_t status;
   void * retval;
+  void (*tab_signal[NB_SIGNALS])(int);
 #ifndef NDEBUG
   int valgrind_stackid;
 #endif
