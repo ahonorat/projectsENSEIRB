@@ -6,6 +6,6 @@
 
 int thread_kill(thread_t thread,int sig);
 
-int thread_sigaction(int signum,void (*new_sa_handler)(int),void (*old_sa_handler)(int));
+int thread_signal(int signum,void (*new_sa_handler)(int));
 
 #endif

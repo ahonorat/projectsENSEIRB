@@ -1,6 +1,7 @@
 #include "my_signal.h"
 
 void add_signal(unsigned int * listsig, int sig){
+  
 	int mask=1;
 	*listsig=*listsig | (mask << sig);
 }
@@ -30,7 +31,7 @@ int thread_kill(thread_t thread,int sig){
   return 1;
 }
 
-int thread_sigaction(int signum,void (*new_sa_handler)(int),void (*old_sa_handler)(int)){
+int thread_signal(int signum,void (*new_sa_handler)(int)){
   struct thread *thread = thread_self();
   
   if(get_signal(thread->signal) == signum){
