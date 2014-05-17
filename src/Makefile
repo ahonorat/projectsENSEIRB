@@ -7,7 +7,7 @@ include conf.make
 
 CFLAGS += -Iincludes
 SRC:=example.c
-LIB:=$(shell find ../$(LIB_DIR) -name '*.so')
+LIB:=$(shell find ../$(LIB_DIR) -name 'thread.so')
 OBJS=$(shell find ../$(OBJ_DIR) -name '*.o')
 HERE:=$(shell pwd)
 

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <time.h>
-#include "../includes/thread.h"
+#include <sys/time.h>
+#include "thread.h"
 
 #define MAX 1000000
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 {
   int res, taille;
   if (argc < 2) {
-    printf("argument manquant: entier x , taille du tableau a trier\n");
+    printf("argument manquant: taille du tableau a trier\n");
     return -1;
   }
   
@@ -63,20 +63,21 @@ int main(int argc, char *argv[])
   }
 
   int i;
-  srand(time(NULL));
-  int s = 0;
   for (i = 0; i < taille; i++){
-    tableau[i] = rand()%10;
-    s += tableau[i];
+    tableau[i] = i+1;
   }
   
   struct deuxint ext;
   ext.x = 0;
   ext.y = taille;
-
+  struct timeval tv1, tv2;
+  unsigned long us;
+  gettimeofday(&tv1, NULL);
   res = (int) sum((void *)&ext);
+  gettimeofday(&tv2, NULL);
+  us = (tv2.tv_sec-tv1.tv_sec)*1000000+(tv2.tv_usec-tv1.tv_usec);
+  printf("Temps de calcul: %ld us\n", us);
   printf("la somme thread vaut = %d\n", res);
-  printf("la somme vaut = %d\n", res);
 
   return 0;
 }
