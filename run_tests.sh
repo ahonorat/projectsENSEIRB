@@ -2,7 +2,7 @@
 
 i=10
 
-fonc='01-main 02-switch 06-sum-tab 07-signal-test 11-join 12-join-main 17-thread-cancel 21-create-many 22-create-many-recursive 31-switch-many 32-switch-many-join 51-fibonacci 89-preemption'
+fonc='01-main 02-switch 06-sum-tab[1..n] 07-signal-test 11-join 12-join-main 17-thread-cancel 21-create-many 22-create-many-recursive 31-switch-many 32-switch-many-join 51-fibonacci 89-preemption'
 
 make -s lib
 make -s tests
@@ -54,5 +54,3 @@ echo -e "\nend of diff\n"
 
 
 rm out t_out
-
-#./32-switch-many-join 56 65 | grep ' us' | sed 's/^.* \([0-9]*\) us$/\1/'
