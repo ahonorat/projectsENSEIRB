@@ -1,4 +1,4 @@
-\section{Fonctionnement de la bibliothèque}
+\section{Fonctionnement de la bibliothèque -- version minimale}
 
  La bibliothèque, s'inspirant de \texttt{p\_thread}, implémente les
 fonctions suivantes:
@@ -9,27 +9,31 @@ fonctions suivantes:
   \item \texttt{thread\_join}
   \item \texttt{thread\_exit}
 \end{itemize}
+La plupart des arguments sont similaires à quelques exceptions près : dans la version du projet il n'y a pas d'attribut de thread à passser à \texttt{thread\_create} et la fonction que le \emph{thread} exécute ne peut avoir qu'un seul argument \texttt{void *}.
 
 \subsection{Organisation des sources}
 
-\paragraph{} L'implémentation de ces fonctions requiert la définition
-de certaines structures regroupées dans le répertoire
-\texttt{src/includes}. Les principales structures sont :
-\begin{itemize}
-\item La structure de thread.
-\item La structure de liste.
-\end{itemize} La bibliothèque \texttt{ccan\_list} a été choisie pour
-représenter les listes. Mais afin de pouvoir adapter le code à un
+\paragraph{} 
+L'implémentation de ces fonctions requiert l'utilisation d'un certain nombre de fonctions annexes, non visibles par l'utilisateur. Par conséquent les sources sont réparties dans les dossiers \texttt{includes}, \texttt{core} et \texttt{others}.
+
+\paragraph{}
+En particulier, la bibliothèque \texttt{ccan\_list} a été choisie pour
+représenter les listes et afin de pouvoir adapter le code à un
 autre type de liste, des fonctions d'abstraction ont été écrites dans
 \texttt{src/others/manip\_list.c}. Celles-ci permettent d'effectuer
 les opérations basiques sur les listes : parcours, ajout,
-suppression. De même, aucun ordonnanceur -- autre que l'utilisation
-basique des listes -- n'est implémenté pour l'instant, mais ses deux
-fonctions principales (i.e. l'ajout d'un thread à la liste des threads
+suppression. 
+
+\paragraph{}
+De même, les deux fonctions principales de l'ordonanceur 
+(i.e. l'ajout d'un thread à la liste des threads
 en attente ou prêts, ainsi que la récupération du prochain thread à
 exécuter) sont regroupées dans un module à part :
-\texttt{src/core/ordo.c}.
-\paragraph{} Enfin les programmes de tests fournis ont été rassemblés
+\texttt{src/core/ordo.c}. La version minimale ordonnance avec une politique FIFO : 
+un nouveau thread est toujours ajouté en fin de liste et le prochain à exécuter est le premier de la liste.
+
+\paragraph{}
+Enfin les programmes de tests fournis ont été rassemblés
 dans le répertoire \texttt{src/prog\_tests} et le fichier
 \texttt{thread.c} a été placé dans le répertoire \texttt{src/core} et
 contient le code principal du programme. La bibliothèque dynamique
@@ -39,9 +43,10 @@ seule fois les tests.
 
 \subsection{Choix effectués}
 
-La programmation d'une bibliothèque de threads peut s'effectuer de
+Une bibliothèque de threads peut s'utiliser de
 nombreuses façons, en effet différentes politiques d'ordonnancement,
-de préemption, etc existent. La section suivante précisent ces choix.
+de préemption, etc. existent. La section suivante précise les choix faits 
+pour la version minimale.
 
 \subsubsection{Stockage des threads}
 
@@ -53,7 +58,7 @@ selon leur état dans une des trois structures suivantes :
 terminé mais n'ayant pas été récupérés par leur parent ;
 \item la \texttt{ready\_list}, qui contient la liste des threads prêts
 à s'exécuter ;
-\item le thread \texttt{running}, qui contient le threads en cours
+\item le thread \texttt{running}, qui contient le thread en cours
 d'exécution.
 \end{itemize} Actuellement, un seul thread noyau est employé pour
 exécuter l'ensemble des threads créés par l'utilisateur. L'utilité
@@ -64,24 +69,31 @@ est toujours ajouté à la fin, et c'est le premier qui est récupéré.
 
 \subsubsection{La structure thread}
 
-\paragraph{} Premièrement, un choix s'est imposé sur la définition de
+\paragraph{} 
+Premièrement, un choix s'est imposé sur la définition de
 la structure thread. Un thread est de manière évidente, attaché à un
 contexte et la structure doit donc le contenir.
-\paragraph{} D'autre part, un thread, à chaque instant, est soit en
-attente, soit prêt à être executé, soit en execution. Le statut du
+
+\paragraph{} 
+D'autre part, un thread, à chaque instant, est soit terminé, soit en
+attente d'un fils, soit prêt à être exécuté, soit en exécution. Le statut du
 thread est stocké au sein de la structure \texttt{thread} elle-même
 pour des raisons d'optimisation. En effet, il serait inutilement
 coûteux de devoir parcourir chaque liste à la recherche d'un certain
 thread pour obtenir son statut, notamment dans le cas d'un
 \texttt{join} qui doit vérifier si un thread est dans la
 \texttt{waiting\_list}.
-\paragraph{} Par ailleurs, au vu du contenu des fonctions de
+
+\paragraph{} 
+Par ailleurs, au vu du contenu des fonctions de
 \texttt{thread.c}, nous avons choisi de marquer le thread du
 \texttt{main} d'une manière différente. En effet, son
-allocation/desallocation s'effectue distinctement des autres : sa pile
+allocation/désallocation s'effectue distinctement des autres : sa pile
 n'est pas allouée par la bibliothèque. Ce marquage se traduit par un
 attribut \texttt{is\_main}.
-\paragraph{} Enfin, un attribut \texttt{retval} permet le stockage de
+
+\paragraph{}
+Enfin, un attribut \texttt{retval} permet le stockage de
 la valeur renvoyée au niveau du \texttt{thread\_join}. Pour gérer le
 cas d'un thread qui n'appelle pas la fonction \texttt{thread\_exit},
 une fonction auxiliaire a été implémentée dans la bibliothèque et
@@ -133,12 +145,10 @@ question de la libérer - du reste, nous avons été incapables de
 récupérer son adresse.
 
 \paragraph{}
-Par ailleurs, la fonction \texttt{exit} est la seule à pouvoir libérer proprement la mémoire
-allouée pour le thread principal. Cependant, si elle est exécutée depuis un autre contexte que le thread principal
-(avec sa propre pile), la fonction \texttt{exit} dysfoncionne.
+Par ailleurs, la fonction \texttt{exit} est la seule à pouvoir libérer proprement la mémoire allouée pour le thread principal. Cependant, si elle est exécutée depuis un autre contexte que le thread principal (avec sa propre pile), la fonction \texttt{exit} dysfonctionne.%ol : explications?
 Il faut donc recourir à une astuce pour, au moment où le thread \texttt{main}
 appelle \texttt{thread\_exit}, sauvegarder un contexte sur le point
-d'apppeler \texttt{exit} tout en le remplaçant par celui d'un thread
+d'appeler \texttt{exit} tout en le remplaçant par celui d'un thread
 prêt.
 
 \paragraph{}

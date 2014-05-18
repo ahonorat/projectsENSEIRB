@@ -1,0 +1,24 @@
+\subsection{Ordonancement}
+
+Afin de mieux gérer l'utilisation des threads, une option a été rajoutée afin de prendre en compte la volonté de l'utilisateur de rajouter son thread en tête ou en fin de liste lors d'un yield. Cela consiste donc formellement à considérer la \emph{ready\_list} comme une FIFO ou une LIFO.
+
+\subsection{Fonctionnement}
+
+\paragraph{}
+Le fonctionnement de cet avancement est très simple : lors de la création d'un thread par la nouvelle fonction \texttt{thread\_create\_a(..., int a)} qui prend en argument supplémentaire un entier désignant la politique d'ordonnancement voulue (0 pour FIFO, 1 pour LIFO), un champ particulier de la structure du thread est initialisé avec cet entier. Lors de tout ajout à la \emph{ready\_list}, cet entier servira à déterminer s'il faut le mettre en début (LIFO) ou en fin (FIFO) de liste.
+
+\paragraph{}
+Afin d'assurer la cohérence avec la fonction originale de création de thread, l'ancienne fonction de création se contente d'appeler la nouvelle avec comme politique FIFO. Le fait qu'il n'y ait pas d'attente infinie est assurée à la fois par la préemption, et à la fois par le fonctionnement de \texttt{thread\_yield()} qui retire sélectionne le premier élément de la liste avant d'ajouter celui qui vient d'être préempté.
+
+\paragraph{}
+Notons que cette nouvelle fonction est remplacée par un appel standard de création de thread (sans attribut particulier) dans la bibliothèque \texttt{p\_thread}.
+
+\subsection{Tests}
+
+\paragraph{}
+Le principal test effectué est la modification de \texttt{51-fibonacci} qui utilise maintenant une politique LIFO. Le résultat est non seulement une légère amélioration du temps d'exécution, mais aussi et surtout le fait qu'il est alors possible de calculer fibonacci sur n'importe quel entier : il n'y a plus de swap dû au trop grand nombre de threads créés. Maintenant chaque thread créé s'exécute tout de suite et les seuls threads pouvant s'exécuter à sa place sont ceux qu'il vient lui-même de créer, jusqu'à ce que ceux-ci terminent.
+
+\subsection{Améliorations}
+
+\paragraph{}
+La principale amélioration consisterait à implémenter des notions de priorités entre les threads, cela nécessiterait plusieurs listes de threads prêts différentes, ainsi qu'une fonction de tri de ces listes. La complexité générale de l'exécution risquerait toutefois d'être trop grande et de la ralentir. 

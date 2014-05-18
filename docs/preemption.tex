@@ -1,0 +1,51 @@
+
+\section{Préemption}
+
+\paragraph{}
+L'utilisateur ne souhaite vraisemblablement pas devoir réfléchir aux endroits où il doit placer des appels à \texttt{thread\_yield()} pour que ses différents threads se partagent équitablement le temps d'exécution.
+
+\paragraph{}
+Pour lui éviter d'avoir à s'en soucier (mais aussi éviter qu'un thread partant accidentellement en boucle infinie bloque totalement le programme), un système de préemption est mis en place : les threads sont systématiquement interrompus après un court intervalle de temps s'ils n'ont pas eux-mêmes appelé \texttt{thread\_yield()}.
+
+\subsection{Mise en oeuvre}
+
+\paragraph{}
+Le module chargé de la préemption contient cinq fonctions :
+
+\begin{itemize}
+\item \texttt{thread\_preemption\_init()}, qu'il faut appeler exactement une fois pour utiliser la preemption. Elle est appelée depuis \texttt{thread\_init()} qui est automatiquement exécutée au démarrage du programme (syntaxe \_\_attribute\_\_((constructor)) de gcc).
+Elle alloue et initilalie un timer de la bibliothèque système lequel va nous envoyer périodiquement le signal SIGALARM, et met en place le \textit{signal handler} \texttt{preempt} pour le signal SIGALRM.
+\item \texttt{thread\_preemption\_quit()}, symétrique à init, qui désalloue ce que la permière a alloué ; on y fait appel depuis \texttt{thread\_quit()}
+\item \texttt{preempt()} est un gestionnaire de signal, qui, sur réception d'un signal d'alarme, appelle \texttt{thread\_yield()} pour donner la main à un autre thread si la préemption est activée.
+\item \texttt{thread\_preemption\_enable()} active la préemption (il s'agit simplement de passer à vrai un booléen).
+\item \texttt{thread\_preemption\_disable()} la désactive.
+\end{itemize}
+
+\paragraph{}
+Les deux dernières fonctions permettent d'éviter, typiquement, que l'exécution soit préemptée en plein milieu d'un swapcontext, ou pendant la création d'un thread, ce qui peut avoir des conséquences désastreuses (par exemple essayer de passer la main à un thread dont la pile n'a pas encore été allouée).
+
+\paragraph{}
+Pour protéger les appels à \texttt{swapcontext()} tout en s'assurant que la préemption soit toujours activée pendant l'éxécution du code utilisateur, l'invariant suivant est introduit sur les contextes sauvegardés : la prochaine instruction qu'ils éxécutent doit toujours être un appel à \texttt{thread\_preemption\_enable()}.
+
+\paragraph{}
+Pour ce faire, les appels à \texttt{swapcontext()} sont immédiatement suivis d'appels à \texttt{thread\_preemption\_enable()} (le contexte qu'on sauvegarde aura donc bien comme prochaine instruction l'activation de la préemption). D'autre part, \texttt{thread\_create()} crée des contextes qui appellent \texttt{thread\_preemption\_enable()} avant d'exécuter la fonction de démarrage du thread.
+
+\subsection{Test}
+
+\paragraph{}
+Le test est le suivant : le thread principal crée un thread chargé d'exécuter une boucle infinie sans appel à \texttt{thread\_yield} et lui donne la main. Si la préemption fonctionne, la boucle infinie est préemptée et le thread principal récupère la main. On réitère dix fois pour être bien sûrs du résultat. Le test ne passe effectivement pas sans préemption (il reste coincé dans la boucle infinie). Ce test ne serait plus tout à fait sûr si notre fonction \texttt{thread\_yield()} ne garantissait pas de donner la main à un autre thread que soi-même, s'il en existe un.
+
+\subsubsection{Changements préconisés}
+
+\paragraph{}
+On peut actuellement reprocher deux choses à notre implémentation.
+Pendant que la préemption est désactivée, le handler continue d'être exécuté pour ne rien faire, gaspillant ainsi une part infime du temps processeur. Il serait peut-être plus efficace d'enlever le \textit{signal handler} pour la désactiver, ou bien (mieux encore) de désactiver le timer, mais nos tentatives en ce sens ont généré des erreurs et nous n'avons pas exploré plus avant ces options.
+
+\paragraph{}
+D'autre part, un thread qui ferait de nombreux appels aux fonctions de notre bibliothèque qui désactivent la préemption pendant leur exécution risque de ne jamais être préempté si à chaque SIGALRM reçu l'exécution est au milieu d'une de ces fonctions.
+On peut facilement pallier ce problème en ajoutant un appel à \texttt{thread\_yield} dans les fonctions en question.
+
+\paragraph{}
+Dernier détail, la préemption reste active lorsqu'il n'y a qu'un seul thread, et fait des appels inutiles à \texttt{thread\_yield}.
+
+

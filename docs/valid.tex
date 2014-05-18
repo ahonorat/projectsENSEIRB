@@ -1,33 +1,28 @@
 \section{Validation des résultats}
 
-\`A ce stade d'avancement du projet, la validation des résultats n'est pas totale. Cependant quelques mesures ont été effectuées et un script permet de comparer le comportement de la bibliothèque implémentée par rapport à \texttt{p\_thread}.
+La validation des résultats consiste principalement en une comparaison entre le comportement de le bibliothèque implémentée lors du projet et celui de \texttt{p\_thread}. Il convient à la fois de vérifier la correspondance des résultats, mais aussi d'expliquer les différences de temps de calcul entre les deux bibliothèques pour des tests choisis. 
 
-\subsection{Passage des tests fournis}
+\subsection{Scripts de tests}
 
 \paragraph{}
+Trois scripts permettent de tester les tests fournis, ainsi que ceux implémentés dans le cadre du projet. 
+
+\paragraph{\texttt{run\_tests.sh}}
+Ce script lance tous les tests et effectue un \texttt{diff} entre les sorties des binaires utilisant \texttt{p\_thread} et celles des binaires utilisant la bibliothèque du projet. Les \texttt{diff} ne devraient rien afficher en dehors des différences dues au temps d'exécution ou aux adresses.
+
+\paragraph{\texttt{valgrind\_tests.sh}}
+Le principe est identique au script précédent, il ds'agit cette fois de comparer les sorties de valgrind.
+
+\paragraph{\texttt{bench/create\_graph.sh}}
+Les tests fournissant leur temps d'exécution en sortie sont ici exécutés afin de comparer les performances des deux bibliothèques. Cinq graphiques sont automatiquement générés, en faisant une moyenne sur dix lancements. Cela permet de s'assurer de la pertinence des performances sur des plateformes différentes.
+
+\subsection{Passage des tests}
+
+\paragraph{Tests fournis}
 Tous les tests fournis par M. Goglin fonctionnent avec la bibliothèque implémentée \texttt{thread.so}. Aucune erreur mémoire ne se présente pour ces tests (aucune fuite mémoire, aucune erreur de lecture). \textsf{Valgrind} détecte cependant un changement de pile (et émet un avertissement). Mais cette manipulation est maîtrisée : elle permet en effet de désallouer correctement la pile dans le test \texttt{12-join-main}.
 
-\paragraph{}
-Les résultats sont ensuite comparés à ceux de \texttt{p\_thread} afin de les valider. Le script \texttt{run\_tests.sh} permet de lancer tous les tests avec chacune des deux bibliothèques et affiche un \texttt{diff} pour l'affichage des tests, ainsi qu'un autre pour les résultats de \textsf{Valgrind}.
+\paragraph{Tests implémentés/modifiés}
+La logique des tests implémentés dans le cadre du projet était de vérifier l'exécution des nouvelles fonctionnalités. Ceux-ci ont déjà été présentés dans les sections de ces nouvelles fonctionnalités, notons simplement que leur exécution ne provoque pas non plus d'erreur ni de fuite mémoire.
 
-\subsection{Comparaison avec \texttt{p\_thread}}
-
-\paragraph{}
-Une comparaison de performance avec \texttt{p\_thread} peut sembler controversable puisque nous n'utilisons qu'une seul thread noyau. Les temps de création et destruction des threads seront donc inférieurs pour \texttt{thread.so}, en revanche les threads ne s'exécuteront pas en parallèle donc les temps de calculs peuvent être plus longs.
-
-\paragraph{}
-Ainsi la comparaison des temps sur les tests 31, 32 et 51 (respectivement création de threads et yield, création récursive de threads et yield et enfin fibonacci) devraient donc donner les résultats suivants : 31 et 32 plus rapides pour \texttt{thread.so}, 51 plus rapide pour \texttt{p\_thread}.
-\\
-\begin{figure}[!h]
-  \includegraphics[scale=0.5]{31.png}
-\end{figure}
-
-\begin{figure}[!h]
-  \includegraphics[scale=0.5]{32.png}
-\end{figure}
-
-\begin{figure}[!h]
-  \includegraphics[scale=0.5]{51.png}
-\end{figure}
-
-Tous les tests ne sont toutefois pas en accord avec les prévisions faites : notamment en ce qui concerne les tests 32 et 51.
+\paragraph{Rapidité de la bibliothèque du projet}
+Les graphiques générés automatiquement par le script dans \texttt{bench/} permet de s'assurer qu'en toute circonstance, la bibliothèque du projet permet une exécution plus rapide des tests. Cela est toutefois a relativiser avec le fait que les tests ne sont pas prévus pour effectuer des opérations parallèles, où seuls une implémentation de threads noyaux aurait pu permettre à la bibliothèque d'être peut-être aussi performante.

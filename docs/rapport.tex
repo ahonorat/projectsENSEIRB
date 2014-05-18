@@ -3,7 +3,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[french]{babel}
 \usepackage{geometry}
-\geometry{hmargin=3.5cm,vmargin=3.5cm}
+\geometry{hmargin=3cm,vmargin=3cm}
 \usepackage{graphicx}
 \usepackage{fancyhdr}
 \usepackage{color}
@@ -58,14 +58,30 @@
 \section*{Introduction}
 
 \paragraph{}
-Le projet de système d'exploitation consiste à développer une bibliothèque de \emph{threads}, basée sur l'interface de \texttt{p\_thread}. Dans un premier temps, celle-ci devra se contenter d'un seul thread noyau, ainsi tous les \emph{threads} que créera l'utilisateur seront exécutés de manière séquentielle. 
+Le projet de système d'exploitation consiste à développer une bibliothèque de threads, basée sur l'interface de \texttt{p\_thread}. Il s'agit dans cette version de la création de \emph{threads} utilisateurs uniquement, tous sur le même thread noyau ; ainsi tous les threads que créera l'utilisateur seront exécutés de manière séquentielle.
 
 \paragraph{}
-L'objectif minimal est de pouvoir implémenter toutes les fonctions de prototypes identiques à ceux de \texttt{p\_thread}, de sorte que tous les tests fournis foncionnent. Ce premier rapport présente l'avancement actuel du projet, en précisant les parties opérationnelles et non opérationnelles, ainsi que les choix effectués et à venir.
+L'objectif était de pouvoir implémenter toutes les fonctions de prototypes identiques à ceux de \texttt{p\_thread}, de sorte que tous les tests fournis fonctionnent. Ce rapport présente l'aboutissement de ce projet, divisé en plusieurs parties : la première concerne l'implémentation initiale afin de passer les tests fournis, puis les suivantes décrivent les fonctionnalités avancées que nous avons développées pour améliorer cette première version.
 
-%\newpage
+\newpage
+
 \input{fonc.tex}
 
+\input{signal.tex}
+
+\input{preemption.tex}
+
+\input{cancel.tex}
+
+\input{ordo.tex}
+
 \input{valid.tex}
+
+
+\section*{Conclusion}
+\paragraph{}
+Ce projet a permis à l'ensemble de l'équipe de consolider des bases au niveau de la compréhension du fonctionnement des threads et de leurs interactions. Le fait d'implémenter leur structure depuis l'origine est sans aucun doute la meilleure façon de comprendre le système. Enfin, la comparaison entre pthread et notre bibliothèque a apporté une vision critique au projet en soulevant les avantages des deux entités et en assimilant leurs limites.  
+\paragraph{}
+Nous regrettons toutefois de ne pas être parvenus à la gestion de plusieurs threads noyaux, qui bien qu'étant une partie très compliquée, soulève des problèmes au moins aussi intéressants que ceux que nous avons abordés.
 
 \end{document}

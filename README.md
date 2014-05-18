@@ -29,4 +29,5 @@ Le script valgrind_tests.sh lance tous les binaires de tests (idem run_tests.sh)
 
 ###Création de graphiques###
 
-La génération de graphes peut être faite dans bench/ grâce au script create_graph.sh. Celui génère les graphique (sortie en .png) de cinq tests différents, correspondant à chaque fois au temps d'exécution de p_thread et celui de la bibliothèque du projet, en fonction d'une variable indiquée (le plus souvent le nombre de threads). Une moyenne sur 10 exécution est faite afin d'éviter la présence de résultats non significatifs (car perturbés par des interruptions ou autre).
+La génération de graphes peut être faite dans bench/ grâce au script create_graph.sh. Celui génère les graphique (sortie en .png) de cinq tests différents, correspondant à chaque fois au temps d'exécution de p_thread et celui de la bibliothèque du projet, en fonction d'une variable indiquée (le plus souvent le nombre de threads). Une moyenne sur 10 exécution est faite afin d'éviter la présence de résultats non significatifs (car perturbés par des interruptions ou autre). 
+* Attention : nécessite gnuplot et un terminal associé (gnuplot-x11 par exemple). *
