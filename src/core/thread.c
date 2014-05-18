@@ -68,8 +68,8 @@ void run_thread(struct thread * next_running_thread){
     setcontext(&exiting_context);
   }
   running = next_running_thread;
-  thread_preemption_enable();
   setcontext(&next_running_thread->uc);
+  thread_preemption_enable();
 }
 
 void * th_intermediaire(void *(*func)(void *), void *funcarg){
@@ -132,8 +132,8 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 
 extern int thread_create_a(thread_t *newthread, void *(*func)(void *), void *funcarg, int adding_type){
  
-  ucontext_t * uc;
   thread_preemption_disable();
+  ucontext_t * uc;
   //allocation newthread
   *newthread = (struct thread *) malloc(sizeof(struct thread));
   
@@ -152,8 +152,8 @@ extern int thread_create_a(thread_t *newthread, void *(*func)(void *), void *fun
   makecontext(uc, (void (*)(void)) th_intermediaire, 2, func, funcarg);
   (*newthread)->retval = NULL;
   add_in_list(&ready_list, *newthread);
-  thread_yield();
   thread_preemption_enable();
+  thread_yield();
   return 0;
 }
 
@@ -213,11 +213,11 @@ extern int thread_join(thread_t thread, void **retval){
     running = top;
     swapcontext(&prev->uc, &top->uc);
   }
-  thread_preemption_enable();
   assert (thread->status != READY);
   *retval = thread->retval;
   thread_destruct(thread);
   free(thread);
+  thread_preemption_enable();
   return 0;
 }
 
@@ -238,7 +238,6 @@ extern void thread_exit(void *retval){
       valid_thread = chose_next_running_thread(&ready_list);
     running = valid_thread;
     getcontext(&exiting_context);
-    thread_preemption_enable();
     swapcontext(&exiting_context, &valid_thread->uc);
     exit(0);
   } else {
@@ -249,6 +248,7 @@ extern void thread_exit(void *retval){
       run_thread(chose_next_running_thread(&ready_list));
     }
   }
+  thread_preemption_enable();
 }
 
 

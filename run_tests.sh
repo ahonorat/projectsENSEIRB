@@ -30,27 +30,4 @@ echo -e "Diff between our library tests results and pthread tests results (nb_th
 cat res_diff
 echo -e "\nend of diff\n"
 
-
-echo -e "###### Valgrind comparison with pthread ######"
-echo -e "(wait until all diff's are written in val_diff)\n"
-
-echo -e "\nDiff info :"
-echo -e "< thread.so"
-echo -e "> p_thread\n"
-
-echo "" > val_diff
-
-for func in $fonc
-do
-valgrind ./bin/$func $i $i 2>&1 1>/dev/null | awk '{gsub(/^==[[:digit:]]*== /,""); gsub(/^Command:[[:print:]]*/,""); print}' > out
-valgrind ./bin/$func\_pthread $i $i 2>&1 1>/dev/null | awk '{gsub(/^==[[:digit:]]*== /,""); gsub(/^Command:[[:print:]]*/,""); print}' > t_out
-echo -e "\n=====$func==========\n" >> val_diff
-diff out t_out >> val_diff 
-done
-
-echo -e "Diff between our library tests and pthread tests, using valgrind (nb_thread = $i) :\n"
-cat val_diff
-echo -e "\nend of diff\n"
-
-
 rm out t_out

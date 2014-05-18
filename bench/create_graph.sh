@@ -12,13 +12,19 @@ make -s -C ../ lib
 make -s -C ../ tests
 make -s -C ../ tests OPT=-DUSE_PTHREAD
 
-# 06 31 32 33 
+# tests 06 31 32 33 51 (or maybe is it really a phone number ?)
 for func in $fonc
 do
 echo -e "# $func (computing)"
 echo -e "# $func (results)" > $func.dat
 echo -e "# variable \t # p_thread (ms) \t # projet (ms)" > $func.dat
-for i in $values
+if [ "$func" = "06-fibonacci" ]
+then
+    val=$values_fibo
+else
+    val=$values
+fi
+for i in $val
 do
 echo -e "$i\t" > out
 for run in $nb_run
@@ -41,34 +47,6 @@ EOF
 echo -e "--->Graphic generated"
 done
 
-
-# 51
-func=51-fibonacci
-
-echo -e "# $func (computing)"
-echo -e "# $func (results)" > $func.dat
-echo -e "# variable \t # p_thread (ms) \t # projet (ms)" > $func.dat
-for i in $values_fibo
-do
-echo -e "$i\t" > out
-for run in $nb_run
-do
-../bin/$func\_pthread $i | grep ' us' | sed 's/^.* \([0-9]*\) us$/\1/' >> out
-done
-echo -e "\t" >> out
-for run in $nb_run
-do
-../bin/$func $i | grep ' us' | sed 's/^.* \([0-9]*\) us$/\1/' >> out
-done
-tr '\n' ' ' < out > tmp
-echo " " >> tmp
-cat tmp >> $func.dat
-done
-#gnuplot
-gnuplot <<EOF
-load '$func.gp'
-EOF
-echo -e "--->Graphic generated"
 
 rm -f out
 rm -f tmp

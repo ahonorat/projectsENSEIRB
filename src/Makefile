@@ -1,6 +1,7 @@
 TEXT1 := >>>>>main compiled<<<<<
 TEXT2 := >>>>>tests compiled<<<<
-TEXT3 := >>>>>lib compiled<<<<<<
+TEXT3 := >>>>>lib compiled<<<<<
+TEXT4 := >>>>>tests compiled (using pthread)<<<<
 
 
 include conf.make
@@ -25,7 +26,12 @@ tests: lib
 ifeq ($(DEBUG),YES)
 	$(info !!Sources compiled for debug!!)
 endif
+ifeq ($(OPT),-DUSE_PTHREAD)
+	$(info $(TEXT4))
+else
 	$(info $(TEXT2))
+endif
+
 
 ifeq ($(OPT),-DUSE_PTHREAD)
 lib: 
