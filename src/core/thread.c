@@ -214,7 +214,8 @@ extern int thread_join(thread_t thread, void **retval){
     swapcontext(&prev->uc, &top->uc);
   }
   assert (thread->status != READY);
-  *retval = thread->retval;
+  if (retval)
+    *retval = thread->retval;
   thread_destruct(thread);
   free(thread);
   thread_preemption_enable();
