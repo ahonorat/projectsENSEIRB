@@ -18,7 +18,7 @@ public class CreateSampleDocuments {
 		for (int i = 0; i<nbDocs; i++){
 			Calendar cal = Calendar.getInstance();
 			DBDocument doc = new DBDocument("dataCollection", cal, monit.getName(), "N/A");
-			DataValue dv = new DataValue(monit.getName(), "N/A", cal, Integer.class, randInt(0,100));
+			DataValue dv = new DataValue(monit.getName(), "N/A", cal, randInt(0,100));
 			doc.addDataValue(dv);
 			DBConnexion.sendDocument(doc);		
 		}			

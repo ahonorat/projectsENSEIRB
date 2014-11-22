@@ -15,7 +15,7 @@ public class MonitorTask extends TimerTask {
 		System.out.println("coucou du moniteur1");
 		Calendar previously = Calendar.getInstance();
 		previously.set(Calendar.YEAR,2013);
-		DBResult<DataValue> res = new DBResult<DataValue>("monitor1", DataValue.class);
+		DBResult res = new DBResult("monitor1");
 		List<DataValue> list = res.getDataPointsBetween(previously, Calendar.getInstance());
 		if (list.isEmpty())
 			System.out.println("\u001B[31mNo item found !\u001B[0m");

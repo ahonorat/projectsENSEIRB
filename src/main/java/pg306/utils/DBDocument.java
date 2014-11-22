@@ -35,22 +35,10 @@ public class DBDocument {
 	}
 	
 	public boolean addDataValue(DataValue datapoint){
-		Class<?> valueType = datapoint.getType();
-		if (datapoint.getCalendar().equals(date) && datapoint.getName().equals(metric)
-				&& datapoint.getUnit().equals(unit) && !merge){
-			JsonObject data = new JsonObject();
-			if (Number.class.isAssignableFrom(valueType))
-				data.addProperty("value", (Number) datapoint.getValue());
-			else {
-				//!!! the Json may fails the serialization/deserialization in this case, 
-				//maybe we should throw an exception
-				JsonElement element = gson.toJsonTree(datapoint.getValue(), valueType);
-				data.add("unknown", element);
-			}
-			values.add(data);
-			return true;
-		}
-		return false;
+		JsonObject data = new JsonObject();
+		data.addProperty("value", (Number) datapoint.getValue());
+		values.add(data);
+		return true;
 	}
 	
 	protected String getJson(){

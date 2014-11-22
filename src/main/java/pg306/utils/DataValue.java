@@ -6,15 +6,13 @@ public class DataValue {
 	private String name = null;
 	private String unit = null;
 	private Calendar calendar = null;
-	private Class<?> type = null;
 	private Integer v1 = null;
 	
 	
-	public DataValue(String name, String unit, Calendar calendar, Class<?> type, Integer v1) {
+	public DataValue(String name, String unit, Calendar calendar, Integer v1) {
 		this.name = name;
 		this.unit = unit;
 		this.calendar = calendar;
-		this.type = type;
 		this.v1 = v1;
 	}
 
@@ -28,10 +26,6 @@ public class DataValue {
 
 	public Calendar getCalendar() {
 		return calendar;
-	}
-
-	public Class<?> getType() {
-		return type;
 	}
 
 	public String toString(){
