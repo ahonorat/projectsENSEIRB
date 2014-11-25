@@ -52,7 +52,10 @@ int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, doub
     MPI_Scatterv(sendbuf, counts, disps, blocktype, rcvbuf, nb_in_block*nb_in_block, MPI_DOUBLE, 0, *comm);
   else if (type == GATHER) 
     MPI_Gatherv(sendbuf, nb_in_block*nb_in_block, MPI_DOUBLE, rcvbuf, counts, disps, blocktype, 0, *comm);
-  else
+  
+  MPI_Type_free(&blocktype);
+  
+  if (type != GATHER && type != SCATTER)
     return EXIT_FAILURE;
   return EXIT_SUCCESS;
 }

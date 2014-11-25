@@ -28,15 +28,15 @@ set(PROJECT_INCLUDE_DIR "src")
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${MPI_INCLUDE_PATH}")
 
+add_executable("main"	src/main.c
+			${util_files}
+			${mult_files})
+target_link_libraries("main" ${BLAS_LIBRARIES} ${MPI_LIBRARIES} m)
+
 add_executable("test"	src/test.c
 			${util_files}
 			${mult_files})
 target_link_libraries("test" ${BLAS_LIBRARIES} ${MPI_LIBRARIES} m)
-
-add_executable("bench"	src/bench.c
-			${util_files}
-			${mult_files})
-target_link_libraries("bench" ${BLAS_LIBRARIES} ${MPI_LIBRARIES} m)
 
 
 
