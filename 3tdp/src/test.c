@@ -6,6 +6,7 @@
 #include "fox_mult/mult.h"
 #include "util/proc.h"
 #include "util/matrix.h"
+#include "util/cblas_mkl.h"
 
 #define FILENAMES_LEN 100
 
@@ -14,7 +15,7 @@
 
 #define ABS(a) ((a)>0?(a):-(a))
 #define RELATIVE_ERROR 0.000001
-#define ASSERT_EQ(a,b) if(ABS(((a)-(b))/(a))>RELATIVE_ERROR){printf(#a "!=" #b "(%e!=%e) (diff rel = %e)\n",a,b,ABS(((a)-(b))/(a))); assert(0);}
+#define ASSERT_EQ(a,b) if(ABS(((a)-(b))/(a))>RELATIVE_ERROR){printf(#a "!=" #b "(%e!=%e) (diff rel = %e)\n",a,b,ABS(((a)-(b))/(a))); break;}
 
 #define DEFAULT_MAT_SIZE 4
 
@@ -37,13 +38,6 @@ int main(int argc, char** argv){
   int nb_in_block;
 
   int i, mat_size;
-  char a_filename[FILENAMES_LEN];
-  char b_filename[FILENAMES_LEN];
-  char d_filename[FILENAMES_LEN];
-
-  a_filename[0] = '\0';
-  b_filename[0] = '\0';
-  d_filename[0] = '\0';
 
   if (argc < 2) {
     mat_size = DEFAULT_MAT_SIZE;
@@ -55,23 +49,23 @@ int main(int argc, char** argv){
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc_tot);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  compute_communicator(nb_proc_tot,&nb_proc_row,&comm,&rank);
+  if (EXIT_FAILURE == compute_communicator(nb_proc_tot,&nb_proc_row,&comm,&rank)){
+    MPI_Finalize();
+    return EXIT_FAILURE;
+  }
+    
   mult_fox_mpi_init(nb_proc_row, &comm, &grid, rank);
 
   if (rank == 0){
     printf("Random matrix size (= nb_rows = nb_cols) : %d\n", mat_size);
-    if (a_filename[0] == '\0'){
-      create_random_matrix(&A, mat_size, nb_proc_row);
-    }
-    if (b_filename[0] == '\0'){
-      create_random_matrix(&B, mat_size, nb_proc_row);
-    }
+    create_random_matrix(&A, mat_size, nb_proc_row);
+    create_random_matrix(&B, mat_size, nb_proc_row);
     create_random_matrix(&C, mat_size, nb_proc_row);
-    assert(A.length == B.length);
-    if (d_filename[0] != '\0'){
-      assert(A.length == D.length);
-    }
+    create_random_matrix(&D, mat_size, nb_proc_row);
     nb_in_block = A.length/nb_proc_row;
+    mat_size = A.length;
+    for (i = 0; i<mat_size*mat_size; i++) D.tab[i] = 0.;
+    cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,mat_size,mat_size,mat_size,1.0,A.tab,mat_size,B.tab,mat_size,1.0,D.tab,mat_size);
   }
 
   MPI_Bcast(&nb_in_block, 1, MPI_INT, 0, comm);
@@ -88,27 +82,30 @@ int main(int argc, char** argv){
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, local_C.tab, C.tab, GATHER);
 
   int proc;
+  int coords[2];
   for (proc=0; proc<nb_proc_row*nb_proc_row; proc++) {
     if (proc == rank) {
-      printf("Process : %d, %d\n", rank, local_C.length);
+      MPI_Cart_coords(comm, rank, 2, coords);
+      printf("Local matrix C, process: %d, coords: %d %d\n", rank, coords[0], coords[1]);
       print_matrix(&local_C, stdout);
     }
     MPI_Barrier(comm);
   }
 
-  //recompose matrix
   free(local_A.tab);
   free(local_B.tab);
   free(local_C.tab);
 
   if (rank == 0){
-    if (d_filename[0] != '\0'){
-      for (i = 0; i<(C.length*C.length); i++){
-	ASSERT_EQ(C.tab[i],D.tab[i]);
-      }
-      printf("Matrix result is okay ... (err < "STR(RELATIVE_ERROR)").\n");
-      free(D.tab);
+    for (i = 0; i<(C.length*C.length); i++){
+      ASSERT_EQ(C.tab[i],D.tab[i]);
     }
+    if (i == (C.length*C.length))
+      printf("Matrix result is okay (comparison with BLAS library) (err < "STR(RELATIVE_ERROR)").\n");
+    else
+      printf("Matrix result is bad (at least one value is bad)");
+    free(D.tab);
+    printf("Matrix C:\n");
     print_matrix(&C, stdout);
 
     free(A.tab);

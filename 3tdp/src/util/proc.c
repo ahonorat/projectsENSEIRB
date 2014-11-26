@@ -25,8 +25,10 @@ int compute_communicator(int nb_proc_tot, int* nb_proc_row, MPI_Comm* new_comm, 
   const int periods[] = {1, 1};
 
   MPI_Cart_create(MPI_COMM_WORLD, 2, dims, periods, 1, new_comm);
-  MPI_Comm_rank(*new_comm, rank);
-
+  if (*new_comm != MPI_COMM_NULL)
+    MPI_Comm_rank(*new_comm, rank);
+  else 
+    return EXIT_FAILURE;
   return EXIT_SUCCESS;
 }
 

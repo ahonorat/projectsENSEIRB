@@ -64,8 +64,12 @@ int main(int argc, char** argv){
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc_tot);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  compute_communicator(nb_proc_tot,&nb_proc_row,&comm,&rank);
-  mult_fox_mpi_init(nb_proc_row, &comm, &grid, rank);
+  if (EXIT_FAILURE == compute_communicator(nb_proc_tot,&nb_proc_row,&comm,&rank)){
+    MPI_Finalize();
+    return EXIT_FAILURE;
+  }
+  
+  mult_fox_mpi_init(nb_proc_row, &comm, &grid, rank);  
 
   if (rank == 0){
 
