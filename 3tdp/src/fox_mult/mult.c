@@ -5,7 +5,7 @@
 #include "util/cblas_mkl.h"
 #include "util/matrix.h"
 
-#define SWAP(a,b) void* c = (a); (b) = (a); (a) = c
+#define SWAP(a,b) void* c = (b); (b) = (a); (a) = c
 
 #define COMM_TAG_BKI 42
 
@@ -20,10 +20,10 @@ int mult_fox_mpi_init(int nb_proc_row, MPI_Comm* comm, struct grid* grid, int ra
   int r;
   coords[0]++; 
   MPI_Cart_rank(*comm, coords, &r);
-  grid->proc_above = r;
+  grid->proc_under = r;
   coords[0] -= 2; 
   MPI_Cart_rank(*comm, coords, &r);
-  grid->proc_under = r;
+  grid->proc_above = r;
   return EXIT_SUCCESS;
 }
 
@@ -34,11 +34,11 @@ int mult_fox_mpi_finalize(struct grid* grid){
 }
 
 
-void mult_fox_mpi(int n, const double* Aij, const double* Bij, double* Cij, const struct grid* grid){
+void mult_fox_mpi(int n, const double* Aij, const double* Bij, double* Cij, const struct grid* grid, MPI_Comm comm){
     int I = grid->rank_I;
     int J = grid->rank_J;
     int N = grid->N;
-    int i;
+    int i,c;
     
     double* Aik = malloc(sizeof(double)*n*n);
     double* Bkj = malloc(sizeof(double)*n*n);
@@ -46,28 +46,27 @@ void mult_fox_mpi(int n, const double* Aij, const double* Bij, double* Cij, cons
 
     for(i = 0; i<n*n; i++) Cij[i] = 0.0;
 
-    int c;
     for(c=0; c<N; c++){
         int k = (I+c)%N;
         //Send direcltly Bij at 1st send (avoid copy to Bkj)
         const double* Bkj_current = (k==I)?Bij:Bkj;
         MPI_Request bkj_send_request, bkj_recv_request;
-        //Tricky cast to double* to remove warning about const qualifier (which is in the prototype in C++)
-        MPI_Isend((double*)Bkj_current, n*n, MPI_DOUBLE, grid->proc_above, COMM_TAG_BKI, MPI_COMM_WORLD, &bkj_send_request);
-        MPI_Irecv(         Bkj_next,    n*n, MPI_DOUBLE, grid->proc_under, COMM_TAG_BKI, MPI_COMM_WORLD, &bkj_recv_request);
-        {
-            //Broadcast direcltly Aij when k==j (avoid copy to Bkj)
-            const double* Aik_current = (k==J)?Aij:Aik;
-            MPI_Bcast((double*)Aik_current,n*n,MPI_DOUBLE,k,grid->comm_row);
 
-            //Cij += Aik*Bkj
-            cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,n,n,n,1.0,Aik_current,n,Bkj_current,n,1.0,Cij,n);
-        }
+        MPI_Isend(Bkj_current, n*n, MPI_DOUBLE, grid->proc_above, COMM_TAG_BKI, comm, &bkj_send_request);
+        MPI_Irecv(Bkj_next,    n*n, MPI_DOUBLE, grid->proc_under, COMM_TAG_BKI, comm, &bkj_recv_request);
+
+	//Broadcast direcltly Aij when k==j (avoid copy to Akj)
+	const double* Aik_current = (k==J)?Aij:Aik;
+	MPI_Bcast((double*)Aik_current,n*n,MPI_DOUBLE,k,grid->comm_row);
+	
+	//Cij += Aik*Bkj
+	cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,n,n,n,1.0,Aik_current,n,Bkj_current,n,1.0,Cij,n);
+   
         MPI_Request requests[] = {bkj_send_request, bkj_recv_request};
         MPI_Waitall(2,requests,MPI_STATUSES_IGNORE);
         SWAP(Bkj,Bkj_next);
     }
-
+    
     free(Aik);
     free(Bkj);
     free(Bkj_next);

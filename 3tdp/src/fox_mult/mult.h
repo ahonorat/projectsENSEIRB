@@ -32,7 +32,7 @@ int mult_fox_mpi_init(int nb_proc_row, MPI_Comm* comm, struct grid* grid, int ra
  * grid represents the topology of the computation grid
  *      (i.e. how the other blocs are distributed)
  **/
-void mult_fox_mpi(int n, const double* Aij, const double* Bij, double* Cij, const struct grid* grid);
+void mult_fox_mpi(int n, const double* Aij, const double* Bij, double* Cij, const struct grid* grid, MPI_Comm comm);
 
 /**
  * Frees the ressources for the grid (communicators, topology data ...)

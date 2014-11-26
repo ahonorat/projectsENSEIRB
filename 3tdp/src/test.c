@@ -80,9 +80,10 @@ int main(int argc, char** argv){
   create_random_matrix(&local_B, nb_in_block, 1);
   create_random_matrix(&local_C, nb_in_block, 1);
 
-  matrix_placement_proc(nb_proc_row, nb_in_block, &comm, C.tab, local_C.tab, SCATTER);
+  matrix_placement_proc(nb_proc_row, nb_in_block, &comm, A.tab, local_A.tab, SCATTER);
+  matrix_placement_proc(nb_proc_row, nb_in_block, &comm, B.tab, local_B.tab, SCATTER);
   
-  //mult_fox_mpi(MAT_SIZE, A.tab, B.tab, C.tab, &grid);
+  mult_fox_mpi(nb_in_block, local_A.tab, local_B.tab, local_C.tab, &grid, comm);
 
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, local_C.tab, C.tab, GATHER);
 

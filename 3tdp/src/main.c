@@ -48,7 +48,8 @@ int main(int argc, char** argv){
   int rank;
   int nb_in_block;
 
-  int i;
+  int err = 0;
+  int i, mat_size = DEFAULT_MAT_SIZE;
   char a_filename[FILENAMES_LEN];
   char b_filename[FILENAMES_LEN];
   char d_filename[FILENAMES_LEN];
@@ -71,11 +72,8 @@ int main(int argc, char** argv){
     for(i=1; i<argc; i++){
       if(argv[i][0]!='-'){
 	printf("Invalid command : %s\n", argv[i]);
-	mult_fox_mpi_finalize(&grid);
-	MPI_Comm_free(&comm);
-	print_help();
-	MPI_Finalize();
-	return EXIT_SUCCESS;
+	err++;
+	break;
       }
       if(argv[i][1]=='a'){
 	int res = snprintf(a_filename,FILENAMES_LEN-1,"%s",argv[++i]);
@@ -102,29 +100,44 @@ int main(int argc, char** argv){
 	o_filename[FILENAMES_LEN-1]='\0';
       } else {
 	printf("Invalid command : %s\n", argv[i]);
-	mult_fox_mpi_finalize(&grid);
-	MPI_Comm_free(&comm);
-	print_help();
-	MPI_Finalize();
-	return EXIT_SUCCESS;
+	err++;
+	break;
       }
     }
 
     if (a_filename[0] == '\0'){
       create_random_matrix(&A, DEFAULT_MAT_SIZE, nb_proc_row);
+    } else {
+      mat_size = A.length;
     }
     if (b_filename[0] == '\0'){
       create_random_matrix(&B, DEFAULT_MAT_SIZE, nb_proc_row);
     }
-    create_random_matrix(&C, DEFAULT_MAT_SIZE, nb_proc_row);
-    assert(A.length == B.length);
-    if (d_filename[0] != '\0'){
-      assert(A.length == D.length);
+    create_random_matrix(&C, mat_size, nb_proc_row);
+    if ((A.length != B.length)||((d_filename[0] != '\0') && (A.length != D.length))){
+      err++;
+      printf("Attention, les tailles des matrices dans les fichiers ne correspondent pas, fin du programme.\n");
     }
     nb_in_block = A.length/nb_proc_row;
   }
 
   MPI_Bcast(&nb_in_block, 1, MPI_INT, 0, comm);
+  MPI_Bcast(&err, 1, MPI_INT, 0, comm);
+
+  if (err > 0){
+    if (rank == 0){
+      free(A.tab);
+      free(B.tab);
+      free(C.tab);
+      if (d_filename[0] != '\0'){
+	free(D.tab);
+      }
+    }
+    mult_fox_mpi_finalize(&grid);
+    MPI_Comm_free(&comm);
+    MPI_Finalize();
+    return EXIT_FAILURE;
+  }      
 
   create_random_matrix(&local_A, nb_in_block, 1);
   create_random_matrix(&local_B, nb_in_block, 1);
@@ -133,7 +146,7 @@ int main(int argc, char** argv){
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, A.tab, local_A.tab, SCATTER);
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, B.tab, local_B.tab, SCATTER);  
 
-  //mult_fox_mpi(DEFAULT_MAT_SIZE, A.tab, B.tab, C.tab, &grid);
+  mult_fox_mpi(nb_in_block, local_A.tab, local_B.tab, local_C.tab, &grid, comm);
 
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, local_C.tab, C.tab, GATHER);
 

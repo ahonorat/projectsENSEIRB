@@ -35,7 +35,6 @@ int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, doub
   MPI_Datatype blocktype2;  
   int ii, jj;
 
-
   MPI_Type_vector(nb_in_block, nb_in_block, nb_in_block*nb_proc_row, MPI_DOUBLE, &blocktype2);
   MPI_Type_create_resized(blocktype2, 0, sizeof(double), &blocktype);
   MPI_Type_commit(&blocktype);
