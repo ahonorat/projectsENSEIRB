@@ -25,5 +25,5 @@ Some warnings may appear on plafrim, due to the MPI version.
 
 ## Graphs
 
-After compilation, you can compute several graphs by running ```./createGraph.sh```
-
+After compilation on Plafrim, you can compute several graphs by running ```./createGraph.sh```
+We assume the project is located in your $HOME.

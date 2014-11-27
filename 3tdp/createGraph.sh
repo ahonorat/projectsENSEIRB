@@ -32,7 +32,7 @@ do
     do
 	echo "module load compiler/intel mpi/openmpi" > tmp.pbs
 	echo "#PBS -l nodes=$i:ppn=${values_ppn[$cmpt]}" >> tmp.pbs
-	echo "mpiexec -np $(($i * ${values_ppn[$cmpt]})) ./tdp/3tdp/bin/bench $mat_size $nb_iter" >> tmp.pbs
+	echo "mpiexec -np $(($i * ${values_ppn[$cmpt]})) ./tdp3-honorat/bin/bench $mat_size $nb_iter" >> tmp.pbs
 	qsub -l walltime=00:10:00 -N honorat tmp.pbs
 	cat honorat* 
 	while [ $? -ne 0 ]
@@ -71,7 +71,7 @@ do
     echo "#PBS -l nodes=$i:ppn=$((4 / $i))" >> tmp.pbs
     for j in $mat_sizes
     do
-	echo "mpiexec -np 4 ./tdp/3tdp/bin/bench $j $nb_iter" >> tmp.pbs
+	echo "mpiexec -np 4 ./tdp3-honorat/bin/bench $j $nb_iter" >> tmp.pbs
     done
     qsub -l walltime=01:00:00 -N honorat tmp.pbs
     cat honorat* 
