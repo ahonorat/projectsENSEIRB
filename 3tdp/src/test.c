@@ -8,8 +8,6 @@
 #include "util/matrix.h"
 #include "util/cblas_mkl.h"
 
-#define FILENAMES_LEN 100
-
 #define STR_EXPAND(tok) #tok
 #define STR(tok) STR_EXPAND(tok)
 
@@ -105,7 +103,7 @@ int main(int argc, char** argv){
     else
       printf("Matrix result is bad (at least one value is bad)");
     free(D.tab);
-    printf("Matrix C:\n");
+    printf("Matrix C result :\n");
     print_matrix(&C, stdout);
 
     free(A.tab);

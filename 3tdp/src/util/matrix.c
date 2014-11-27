@@ -6,6 +6,23 @@
 #define RANDOM_FLOAT(max) ((float)(rand())/(float)(RAND_MAX)*2-1.0)*(max)
 #define MAX_FLOAT 10.0
 
+int randomize_matrix(struct matrix* mat, int nb_row){
+  if (mat == NULL)
+    return EXIT_FAILURE;
+
+  srand(time(NULL));
+
+  int i,j;
+  for(i=0; i<nb_row; i++){
+    const int ind = i*mat->length;
+    for(j=0; j<nb_row; j++){
+     mat->tab[ind+j] = RANDOM_FLOAT(MAX_FLOAT);
+    }
+  }
+  
+  return EXIT_SUCCESS;
+}
+
 int load_matrix_from_file(struct matrix* mat, int nb_proc_row, const char* filename){
   FILE* file = fopen(filename, "r");
   if(file == NULL){
@@ -63,6 +80,9 @@ int load_matrix_from_file(struct matrix* mat, int nb_proc_row, const char* filen
 
 
 int create_random_matrix(struct matrix* mat, int nb_row, int nb_proc_row){
+  if (mat == NULL)
+    return EXIT_FAILURE;
+
   srand(time(NULL));
   int count = nb_row;
   mat->length = (count/nb_proc_row);
@@ -96,6 +116,7 @@ int create_random_matrix(struct matrix* mat, int nb_row, int nb_proc_row){
 
 int print_matrix(struct matrix* mat, FILE* file){
   int i;
+  fprintf(file, "%d\n", mat->length);
   for(i = 0; i<(mat->length*mat->length); i++){
     fprintf(file, "%lf ", mat->tab[i]);
     if (((i+1) % mat->length) == 0)

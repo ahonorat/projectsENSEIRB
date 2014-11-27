@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mpi.h>
+#include <sys/time.h>
 #include <assert.h>
 
 #include "fox_mult/mult.h"
@@ -40,6 +41,8 @@ int main(int argc, char** argv){
   struct matrix local_A;
   struct matrix local_B;
   struct matrix local_C;
+
+  struct timeval tv1, tv2;
 
   struct grid grid;
   MPI_Comm comm;
@@ -147,6 +150,8 @@ int main(int argc, char** argv){
   create_random_matrix(&local_B, nb_in_block, 1);
   create_random_matrix(&local_C, nb_in_block, 1);
 
+  gettimeofday(&tv1, NULL);
+
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, A.tab, local_A.tab, SCATTER);
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, B.tab, local_B.tab, SCATTER);  
 
@@ -154,11 +159,15 @@ int main(int argc, char** argv){
 
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, local_C.tab, C.tab, GATHER);
 
+  gettimeofday(&tv2, NULL);
+
   free(local_A.tab);
   free(local_B.tab);
   free(local_C.tab);
 
   if (rank == 0){
+    double time =(double)(tv2.tv_sec - tv1.tv_sec)*1000.0+ (double)(tv2.tv_usec - tv1.tv_usec)/1000.0;
+    printf("Execution time : %lf\n", time);//time in ms
     if (d_filename[0] != '\0'){
       for (i = 0; i<(C.length*C.length); i++){
 	ASSERT_EQ(C.tab[i],D.tab[i]);
@@ -175,6 +184,7 @@ int main(int argc, char** argv){
 	printf("Error when opening output file.\n");
       }
     } else {
+      printf("Matrix result :\n");
       print_matrix(&C, stdout);
     }
 

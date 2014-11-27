@@ -38,6 +38,10 @@ add_executable("test"	src/test.c
 			${mult_files})
 target_link_libraries("test" ${BLAS_LIBRARIES} ${MPI_LIBRARIES} m)
 
+add_executable("bench"	src/bench.c
+			${util_files}
+			${mult_files})
+target_link_libraries("bench" ${BLAS_LIBRARIES} ${MPI_LIBRARIES} m)
 
 
 

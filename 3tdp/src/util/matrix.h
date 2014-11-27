@@ -14,7 +14,7 @@ struct matrix{
   //Tab must be a length*length array of double
 };
 
-
+int randomize_matrix(struct matrix* mat, int nb_row);
 int load_matrix_from_file(struct matrix* mat, int nb_proc_row, const char* filename);
 int create_random_matrix(struct matrix* mat, int nb_row, int nb_proc_row);
 int print_matrix(struct matrix* mat, FILE* file);
