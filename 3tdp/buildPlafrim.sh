@@ -1,5 +1,6 @@
-module load compiler/intel compiler/mkl mpi/openmpi
-mkdir -p build 
+module load compiler/intel mpi/openmpi
+rm -rf build
+mkdir build 
 cd build
-cmake .. -DUSE_MKL=single
+cmake .. -DUSE_MKL=parallel
 make

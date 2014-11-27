@@ -64,8 +64,10 @@ int main(int argc, char** argv){
 
   gettimeofday(&tv1, NULL);
   for(i = 0; i< nb_iter; i++){
-    randomize_matrix(&A, nb_in_block);
-    randomize_matrix(&B, nb_in_block);
+    if (rank == 0){
+      randomize_matrix(&A, mat_size);
+      randomize_matrix(&B, mat_size);
+    }
     matrix_placement_proc(nb_proc_row, nb_in_block, &comm, A.tab, local_A.tab, SCATTER);
     matrix_placement_proc(nb_proc_row, nb_in_block, &comm, B.tab, local_B.tab, SCATTER);
     mult_fox_mpi(nb_in_block, local_A.tab, local_B.tab, local_C.tab, &grid, comm);

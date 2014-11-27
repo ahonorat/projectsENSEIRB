@@ -7,7 +7,7 @@
 #define MAX_FLOAT 10.0
 
 int randomize_matrix(struct matrix* mat, int nb_row){
-  if (mat == NULL)
+  if (mat == NULL || mat->tab == NULL)
     return EXIT_FAILURE;
 
   srand(time(NULL));
