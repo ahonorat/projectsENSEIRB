@@ -1,0 +1,29 @@
+# TDP 3 : Fox Multiplication
+
+## Compilation
+
+We assume that you're located at the root of the project, named tdp3-honorat
+
+- On plafrim, just run ```./buildPlafrim```
+- On your PC, you can do :
+  ```
+  mkdir build
+  cd build
+  cmake ..
+  make
+  ```
+Some warnings may appear on plafrim, due to the MPI version.
+
+## Binaries
+
+- main [-a <matrix_file_path> -b <matrix_file_path>] [-o <matrix_output_path] [-c <check_matrix_file_path>]
+- test [<mat_size>] 
+  => visual checking for gather/scatter, comparison with blas
+- bench <mat_size> <nb_iter> 
+  => produces output %mat_size %time_execution(ms)
+  <nb_iter> will allow to compute a mean of several execution times
+
+## Graphs
+
+After compilation, you can compute several graphs by running ```./createGraph.sh```
+
