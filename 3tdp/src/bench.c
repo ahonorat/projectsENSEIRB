@@ -31,7 +31,7 @@ int main(int argc, char** argv){
   struct timeval tv1, tv2;
 
   if (argc != 3) {
-    MPI_Finalize();
+    printf("Usage : ./bench <mat_size> <nb_iter>\n");
     return EXIT_FAILURE;
   } else {
     mat_size = atoi(argv[1]);
@@ -42,13 +42,16 @@ int main(int argc, char** argv){
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc_tot);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+  // initialization of the grid communicator
   if (EXIT_FAILURE == compute_communicator(nb_proc_tot,&nb_proc_row,&comm,&rank)){
     MPI_Finalize();
     return EXIT_FAILURE;
   }
     
+  // initialization of the proc localization in the grid
   mult_fox_mpi_init(nb_proc_row, &comm, &grid, rank);
 
+  // initialization of global matrix
   if (rank == 0){
     create_random_matrix(&A, mat_size, nb_proc_row);
     create_random_matrix(&B, mat_size, nb_proc_row);
@@ -56,12 +59,15 @@ int main(int argc, char** argv){
     nb_in_block = A.length/nb_proc_row;
   }
 
+  // broadcast of the number of row/col in a block
   MPI_Bcast(&nb_in_block, 1, MPI_INT, 0, comm);
 
+  // initialization of local matrix
   create_random_matrix(&local_A, nb_in_block, 1);
   create_random_matrix(&local_B, nb_in_block, 1);
   create_random_matrix(&local_C, nb_in_block, 1);
 
+  // the execution time contain scatter, fox mult and then gather
   gettimeofday(&tv1, NULL);
   for(i = 0; i< nb_iter; i++){
     if (rank == 0){
@@ -75,7 +81,7 @@ int main(int argc, char** argv){
   }
   gettimeofday(&tv2, NULL);
 
-
+  // all frees
   free(local_A.tab);
   free(local_B.tab);
   free(local_C.tab);

@@ -14,6 +14,13 @@ enum arrangement {GATHER, SCATTER};
  */
 int compute_communicator(int nb_proc_tot, int* nb_proc_row, MPI_Comm* new_comm, int* rank);
 
+
+/*
+ * Scatter (or gather) the matrix to (from) all the process.
+ * nb_proc_row and nb_in_block are used to calculate sizes of blocks to transmit
+ * comm is the grid communicator
+ * type is GATHER or SCATTER
+ */
 int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, double* sendbuf, double* rcvbuf, enum arrangement type);
 
 #endif

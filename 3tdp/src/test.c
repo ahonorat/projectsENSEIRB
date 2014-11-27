@@ -47,13 +47,16 @@ int main(int argc, char** argv){
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc_tot);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+  // initialization of the grid communicator
   if (EXIT_FAILURE == compute_communicator(nb_proc_tot,&nb_proc_row,&comm,&rank)){
     MPI_Finalize();
     return EXIT_FAILURE;
   }
-    
+
+  // initialization of the proc localization in the grid   
   mult_fox_mpi_init(nb_proc_row, &comm, &grid, rank);
 
+  // initialization of global matrix
   if (rank == 0){
     printf("Random matrix size (= nb_rows = nb_cols) : %d\n", mat_size);
     create_random_matrix(&A, mat_size, nb_proc_row);
@@ -62,16 +65,20 @@ int main(int argc, char** argv){
     create_random_matrix(&D, mat_size, nb_proc_row);
     nb_in_block = A.length/nb_proc_row;
     mat_size = A.length;
+    // computation by BLAS lib, to compare the result with
     for (i = 0; i<mat_size*mat_size; i++) D.tab[i] = 0.;
     cblas_dgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,mat_size,mat_size,mat_size,1.0,A.tab,mat_size,B.tab,mat_size,1.0,D.tab,mat_size);
   }
 
+  // broadcast of the number of row/col in a block
   MPI_Bcast(&nb_in_block, 1, MPI_INT, 0, comm);
 
+  // initialization of local matrix
   create_random_matrix(&local_A, nb_in_block, 1);
   create_random_matrix(&local_B, nb_in_block, 1);
   create_random_matrix(&local_C, nb_in_block, 1);
 
+  // core of the problem: scatter, fox mult and then gather
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, A.tab, local_A.tab, SCATTER);
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, B.tab, local_B.tab, SCATTER);
   
@@ -79,6 +86,7 @@ int main(int argc, char** argv){
 
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, local_C.tab, C.tab, GATHER);
 
+  // each proc print his local matrix result
   int proc;
   int coords[2];
   for (proc=0; proc<nb_proc_row*nb_proc_row; proc++) {
@@ -90,6 +98,7 @@ int main(int argc, char** argv){
     MPI_Barrier(comm);
   }
 
+  // all frees
   free(local_A.tab);
   free(local_B.tab);
   free(local_C.tab);

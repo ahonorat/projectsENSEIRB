@@ -13,8 +13,8 @@ struct grid{
     int rank_I;         ///Line rank
     int rank_J;         ///Column rank
     int N;              ///Number of blocks in a line
-    int proc_above;     ///Rank of the process above (i+1,j) in MPI_COMM_WORLD
-    int proc_under;     ///Rank of the process under (i-1,j) in MPI_COMM_WORLD
+    int proc_above;     ///Rank of the process above (i+1,j) in the grid
+    int proc_under;     ///Rank of the process under (i-1,j) in the grid
 };
 
 /**
@@ -22,6 +22,7 @@ struct grid{
  * nb_proc_row is the number of proc by row, and by column
  * comm is the carthesian communicator
  * grid is the grid to initialize
+ * rank us the rank of calling process
  **/
 int mult_fox_mpi_init(int nb_proc_row, MPI_Comm* comm, struct grid* grid, int rank);
 
@@ -29,6 +30,7 @@ int mult_fox_mpi_init(int nb_proc_row, MPI_Comm* comm, struct grid* grid, int ra
  * C = A*B with the fox multiplication algorithm
  * Aij, Bij, Cij are the distributed blocs of the matrix
  * n is the size of the blocks
+ * comm is the grid communicator
  * grid represents the topology of the computation grid
  *      (i.e. how the other blocs are distributed)
  **/

@@ -67,13 +67,16 @@ int main(int argc, char** argv){
   MPI_Comm_size(MPI_COMM_WORLD, &nb_proc_tot);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+  // initialization of the grid communicator
   if (EXIT_FAILURE == compute_communicator(nb_proc_tot,&nb_proc_row,&comm,&rank)){
     MPI_Finalize();
     return EXIT_FAILURE;
   }
-  
+
+  // initialization of the proc localization in the grid   
   mult_fox_mpi_init(nb_proc_row, &comm, &grid, rank);  
 
+  // initialization of global matrix
   if (rank == 0){
 
     for(i=1; i<argc; i++){
@@ -123,12 +126,15 @@ int main(int argc, char** argv){
     create_random_matrix(&C, mat_size, nb_proc_row);
     if ((A.length != B.length)||((d_filename[0] != '\0') && (A.length != D.length))){
       err++;
-      printf("Attention, les tailles des matrices dans les fichiers ne correspondent pas, fin du programme.\n");
+      printf("WARNING:matrix lengths aren't the same in the files, programm will exit now.\n");
     }
     nb_in_block = A.length/nb_proc_row;
   }
 
+  // broadcast of the number of row/col in a block
   MPI_Bcast(&nb_in_block, 1, MPI_INT, 0, comm);
+
+  // broadcast of the error : if there is one, all process must exit
   MPI_Bcast(&err, 1, MPI_INT, 0, comm);
 
   if (err > 0){
@@ -146,10 +152,12 @@ int main(int argc, char** argv){
     return EXIT_FAILURE;
   }      
 
+  // initialization of local matrix
   create_random_matrix(&local_A, nb_in_block, 1);
   create_random_matrix(&local_B, nb_in_block, 1);
   create_random_matrix(&local_C, nb_in_block, 1);
 
+  // the execution time contain scatter, fox mult and then gather
   gettimeofday(&tv1, NULL);
 
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, A.tab, local_A.tab, SCATTER);
@@ -161,10 +169,12 @@ int main(int argc, char** argv){
 
   gettimeofday(&tv2, NULL);
 
+  // all frees
   free(local_A.tab);
   free(local_B.tab);
   free(local_C.tab);
 
+  // some outputs ...
   if (rank == 0){
     double time =(double)(tv2.tv_sec - tv1.tv_sec)*1000.0+ (double)(tv2.tv_usec - tv1.tv_usec)/1000.0;
     printf("Execution time : %lf\n", time);//time in ms

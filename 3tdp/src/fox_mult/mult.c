@@ -11,12 +11,14 @@
 
 int mult_fox_mpi_init(int nb_proc_row, MPI_Comm* comm, struct grid* grid, int rank){
   const int remain_dims[] = {0, 1};
+  // grid subdivision in row communicator 
   MPI_Cart_sub(*comm, remain_dims, &grid->comm_row);
   grid->N = nb_proc_row;
   int coords[2];
   MPI_Cart_coords(*comm, rank, 2, coords);
   grid->rank_I = coords[0];
   grid->rank_J = coords[1];
+  // determination of neighbours rank (above and under)
   int r;
   coords[0]++; 
   MPI_Cart_rank(*comm, coords, &r);
@@ -44,6 +46,7 @@ void mult_fox_mpi(int n, const double* Aij, const double* Bij, double* Cij, cons
     double* Bkj = malloc(sizeof(double)*n*n);
     double* Bkj_next = malloc(sizeof(double)*n*n);
 
+    // nullify C, which contains random values
     for(i = 0; i<n*n; i++) Cij[i] = 0.0;
 
     for(c=0; c<N; c++){

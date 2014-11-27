@@ -5,6 +5,9 @@
 int compute_communicator(int nb_proc_tot, int* nb_proc_row, MPI_Comm* new_comm, int* rank){
   if (nb_proc_row == NULL || new_comm == NULL)
     return EXIT_FAILURE;
+
+  // classical algo to compute quickly integer square root
+  // this square root will be the amout of process in each dimension of the matrix
   register unsigned int op, res, one;  
   op = (unsigned int) nb_proc_tot;  
   res = 0;  
@@ -21,6 +24,7 @@ int compute_communicator(int nb_proc_tot, int* nb_proc_row, MPI_Comm* new_comm, 
   }  
   *nb_proc_row = (int) res;
 
+  // creation of the communicator for the grid
   const int dims[] =  {*nb_proc_row, *nb_proc_row};
   const int periods[] = {1, 1};
 
@@ -29,6 +33,8 @@ int compute_communicator(int nb_proc_tot, int* nb_proc_row, MPI_Comm* new_comm, 
     MPI_Comm_rank(*new_comm, rank);
   else 
     return EXIT_FAILURE;
+  // some process may be unnecessary (if nb_proc_tot isn't a integer power 2)
+  // so they are stopped
   return EXIT_SUCCESS;
 }
 
@@ -37,6 +43,8 @@ int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, doub
   MPI_Datatype blocktype2;  
   int ii, jj;
 
+
+  // first you create the type representation for a matrix bloc associated to a process
   MPI_Type_vector(nb_in_block, nb_in_block, nb_in_block*nb_proc_row, MPI_DOUBLE, &blocktype2);
   MPI_Type_create_resized(blocktype2, 0, sizeof(double), &blocktype);
   MPI_Type_commit(&blocktype);
@@ -49,6 +57,8 @@ int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, doub
       counts [ii*nb_proc_row+jj] = 1;
     }
   }
+
+  // scatter or gather
   if (type == SCATTER) 
     MPI_Scatterv(sendbuf, counts, disps, blocktype, rcvbuf, nb_in_block*nb_in_block, MPI_DOUBLE, 0, *comm);
   else if (type == GATHER) 

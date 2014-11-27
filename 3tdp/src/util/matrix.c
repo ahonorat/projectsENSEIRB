@@ -6,6 +6,7 @@
 #define RANDOM_FLOAT(max) ((float)(rand())/(float)(RAND_MAX)*2-1.0)*(max)
 #define MAX_FLOAT 10.0
 
+
 int randomize_matrix(struct matrix* mat, int nb_row){
   if (mat == NULL || mat->tab == NULL)
     return EXIT_FAILURE;
@@ -36,6 +37,7 @@ int load_matrix_from_file(struct matrix* mat, int nb_proc_row, const char* filen
     return EXIT_FAILURE;
   }
 
+  // determination of the new matrix size
   mat->length = (count/nb_proc_row);
   mat->length *= nb_proc_row;
   if (count%nb_proc_row != 0){
@@ -43,6 +45,7 @@ int load_matrix_from_file(struct matrix* mat, int nb_proc_row, const char* filen
   }
 
   mat->tab = malloc(sizeof(double)*mat->length*mat->length);
+  // nullify extra terms (in order to match with nb_proc_row multiples)
   int k,l;
   for (k=count; k<mat->length; k++){
     for (l=0; l<mat->length; l++){
@@ -55,7 +58,7 @@ int load_matrix_from_file(struct matrix* mat, int nb_proc_row, const char* filen
     }
   }
 
-
+  // load value from file
   int i,j;
   for(i=0; i<count; i++){
     j = 0;
@@ -84,6 +87,8 @@ int create_random_matrix(struct matrix* mat, int nb_row, int nb_proc_row){
     return EXIT_FAILURE;
 
   srand(time(NULL));
+
+  // determination of the new matrix size
   int count = nb_row;
   mat->length = (count/nb_proc_row);
   mat->length *= nb_proc_row;
@@ -92,6 +97,8 @@ int create_random_matrix(struct matrix* mat, int nb_row, int nb_proc_row){
   }
 
   mat->tab = malloc(sizeof(double)*mat->length*mat->length);
+
+  // nullify extra terms (in order to match with nb_proc_row multiples)
   int k,l;
   for (k=count; k<mat->length; k++){
     for (l=0; l<mat->length; l++){
@@ -104,6 +111,7 @@ int create_random_matrix(struct matrix* mat, int nb_row, int nb_proc_row){
     }
   }
 
+  // complete with random float
   int i,j;
   for(i=0; i<count; i++){
     for(j=0; j<count; j++){
@@ -116,7 +124,9 @@ int create_random_matrix(struct matrix* mat, int nb_row, int nb_proc_row){
 
 int print_matrix(struct matrix* mat, FILE* file){
   int i;
+  // print the size
   fprintf(file, "%d\n", mat->length);
+  // print the values
   for(i = 0; i<(mat->length*mat->length); i++){
     fprintf(file, "%lf ", mat->tab[i]);
     if (((i+1) % mat->length) == 0)
