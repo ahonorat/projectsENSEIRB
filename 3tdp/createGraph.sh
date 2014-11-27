@@ -16,7 +16,7 @@ ppn4='4 5 6 7 8'
 ppn5='5 6 7'
 ppn6='6'
 values_ppn=($ppn1 $ppn2 $ppn3 $ppn4 $ppn5 $ppn6)
-nb_iter=10
+nb_iter=5
 cmpt=0
 rm -f honorat*
 
