@@ -5,7 +5,7 @@ exit 1
 fi
 
 mat_sizes='250 500 750 1000 1250 1500 1750 2000 2250 2500 2750 3000'
-mat_size=2500
+mat_size=3000
 values_node='1 2 3 4 5 6'
 value_node='1 2 4'
 nb_nodes=(8 3 4 5 3 1)
@@ -52,7 +52,7 @@ gnuplot <<EOF
 set terminal png
 set title "Temps d'execution en fonction du nombre de processus"
 set ylabel "Temps d'execution (ms)"	    
-set xlabel "Nombre de noeuds (Plafrim)"
+set xlabel "Nombre de processuss (Plafrim)"
 set output '$nom_fichier.png'
 plot '$nom_fichier.dat' using 1:3 with lines title 'Taille matrice : $mat_size'
 EOF
@@ -65,7 +65,7 @@ echo -e "# $nom_fichier (computing)"
 echo -e "# matrix size \t # exec time (ms)" > tmp
 for i in $values_node
 do
-    nom_fichier="graph_sizes_n$i_ppn$((4 / $i))"
+    nom_fichier="graph_sizes-n$i-ppn$((4 / $i))"
     rm -f $nom_fichier.*
     echo "module load compiler/intel mpi/openmpi" > tmp.pbs
     echo "#PBS -l nodes=$i:ppn=$((4 / $i))" >> tmp.pbs
@@ -91,7 +91,7 @@ set title "Temps d'execution en fonction de la taille des matrices"
 set ylabel "Temps d'execution (ms)"	    
 set xlabel "Taille des matrices carrés (nb_row = nb_col)"
 set output '$nom_fichier.png'
-plot '$nom_fichier_n1_ppn4.dat' using 1:2 with lines title '1 noeud, 4 ppn', '$nom_fichier_n2_ppn2.dat' using 1:2 with lines title '2 noeuds, 2 ppn', '$nom_fichier_n4_ppn1.dat' using 1:2 with lines title '4 noeuds, 1 ppn'
+plot '$nom_fichier-n1-ppn4.dat' using 1:2 with lines title '1 noeud, 4 ppn', '$nom_fichier-n2-ppn2.dat' using 1:2 with lines title '2 noeuds, 2 ppn', '$nom_fichier-n4-ppn1.dat' using 1:2 with lines title '4 noeuds, 1 ppn'
 EOF
 echo -e "--->Graphic generated"
 
