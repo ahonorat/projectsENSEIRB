@@ -13,16 +13,10 @@ public class DBDocument {
 	private boolean merge = false;
 	private JsonObject obj = null;
 	private JsonArray values = null;
-	private Calendar date = null;
-	private String metric = null;
-	private String unit = null;
 	private Gson gson = null;
-	
-	public DBDocument(String documentType, Calendar date, String metric, String unit){
-		this.date = date;
-		this.metric = metric;
-		this.unit = unit;
-		
+
+	public DBDocument(String documentType, Calendar date, String metric,
+			String unit) {
 		gson = new GsonBuilder().serializeNulls().create();
 		obj = new JsonObject();
 		values = new JsonArray();
@@ -33,16 +27,16 @@ public class DBDocument {
 		obj.addProperty("metric", metric);
 		obj.addProperty("unit", unit);
 	}
-	
-	public boolean addDataValue(DataValue datapoint){
+
+	public boolean addDataValue(DataValue datapoint) {
 		JsonObject data = new JsonObject();
 		data.addProperty("value", (Number) datapoint.getValue());
 		values.add(data);
 		return true;
 	}
-	
-	protected String getJson(){
-		if (!merge){
+
+	protected String getJson() {
+		if (!merge) {
 			obj.add("values", values);
 			merge = true;
 		}

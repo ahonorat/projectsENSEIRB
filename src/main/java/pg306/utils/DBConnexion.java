@@ -29,71 +29,71 @@ public class DBConnexion {
 	private static String docDesign = "monitoring";
 	private static String mainViewName = "findDates";
 	private static String allDocsViewName = "allDocs";
-	private static String viewMode = "development"; // change to 'production' when ready
-	
-	private static String mainView = 
-			"function (doc, meta) {\n" +
-			"  if (doc.documentType && doc.documentType == \"dataCollection\"){\n" +
-			"    emit([doc.metric, doc.date.year,doc.date.month, doc.date.dayOfMonth,\n" +
-            "          doc.date.hourOfDay, doc.date.minute, doc.date.second],\n" +
-            "          null); \n  } \n} ";
-	
-	private static String allDocsView = 
-			"function (doc, meta) {\n" +
-			" if (doc.documentType && doc.documentType == \"dataCollection\"){\n" +
-			"   emit(meta.id,null); \n } \n }";
-	
-	private static CouchbaseClient establishConnexion(){
+	private static String viewMode = "development"; // change to 'production'
+													// when ready
+
+	private static String mainView = "function (doc, meta) {\n"
+			+ "  if (doc.documentType && doc.documentType == \"dataCollection\"){\n"
+			+ "    emit([doc.metric, doc.date.year,doc.date.month, doc.date.dayOfMonth,\n"
+			+ "          doc.date.hourOfDay, doc.date.minute, doc.date.second],\n"
+			+ "          null); \n  } \n} ";
+
+	private static String allDocsView = "function (doc, meta) {\n"
+			+ " if (doc.documentType && doc.documentType == \"dataCollection\"){\n"
+			+ "   emit(meta.id,null); \n } \n }";
+
+	private static CouchbaseClient establishConnexion() {
 		List<URI> hosts;
 		CouchbaseClient client = null;
 		try {
 			hosts = Arrays.asList(new URI(node));
 			client = new CouchbaseClient(hosts, bucket, password);
 
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (URISyntaxException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return client;
 	}
-	
-	private static void endConnexion(CouchbaseClient client){
+
+	private static void endConnexion(CouchbaseClient client) {
 		client.shutdown();
 	}
-	
-	private static ComplexKey computeComplexKey(Calendar date, String metric){
-		return ComplexKey.of(metric, date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH),
-				date.get(Calendar.HOUR_OF_DAY), date.get(Calendar.MINUTE), date.get(Calendar.SECOND));
+
+	private static ComplexKey computeComplexKey(Calendar date, String metric) {
+		return ComplexKey.of(metric, date.get(Calendar.YEAR),
+				date.get(Calendar.MONTH), date.get(Calendar.DAY_OF_MONTH),
+				date.get(Calendar.HOUR_OF_DAY), date.get(Calendar.MINUTE),
+				date.get(Calendar.SECOND));
 	}
-	
+
 	/*
-	 * If the views doesn't exist, it install them
-	 * should not be called in production mode.
+	 * If the views doesn't exist, it install them should not be called in
+	 * production mode.
 	 */
-	private static boolean checkView(){
+	private static boolean checkView() {
 		CouchbaseClient client = establishConnexion();
 		DesignDocument designDoc = null;
 		Boolean res = false;
-		if (client != null){
+		if (client != null) {
 			try {
 				client.getView(docDesign, mainViewName);
 				client.getView(docDesign, allDocsViewName);
-			} catch (InvalidViewException e){
+			} catch (InvalidViewException e) {
 				client.deleteDesignDoc(docDesign);
 			}
 			try {
-				//create the mainView and the design document
+				// create the mainView and the design document
 				designDoc = client.getDesignDoc(docDesign);
-			} catch (InvalidViewException f){
+			} catch (InvalidViewException f) {
 				designDoc = new DesignDocument(docDesign);
 				ViewDesign viewDesign1 = new ViewDesign(mainViewName, mainView);
-				ViewDesign viewDesign2 = new ViewDesign(allDocsViewName, allDocsView);
+				ViewDesign viewDesign2 = new ViewDesign(allDocsViewName,
+						allDocsView);
 				designDoc.setView(viewDesign1);
 				designDoc.setView(viewDesign2);
-				// be aware that createDesignDoc is certainly launched in a separate thread
+				// be aware that createDesignDoc is certainly launched in a
+				// separate thread
 				// so either you store the result, either you add .wait().
 				res = client.createDesignDoc(designDoc);
 
@@ -102,14 +102,15 @@ public class DBConnexion {
 		endConnexion(client);
 		return res;
 	}
-	
-	public static boolean sendDocument(DBDocument doc){
+
+	public static boolean sendDocument(DBDocument doc) {
 		Boolean res = false;
 		CouchbaseClient client = establishConnexion();
-		if (client != null){
+		if (client != null) {
 			// Store the Document
 			try {
-				res = client.set(UUID.randomUUID().toString(), doc.getJson()).get();
+				res = client.set(UUID.randomUUID().toString(), doc.getJson())
+						.get();
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 				return false;
@@ -118,14 +119,14 @@ public class DBConnexion {
 		}
 		return res;
 	}
-	
-	public static ViewResponse retrieveViewResult(String metric, Integer count){
+
+	public static ViewResponse retrieveViewResult(String metric, Integer count) {
 		System.setProperty("viewmode", viewMode);
 		checkView();
 		ViewResponse response = null;
 		CouchbaseClient client = establishConnexion();
 		View view = null;
-		if (client != null){
+		if (client != null) {
 			view = client.getView(docDesign, mainViewName);
 			Query query = new Query();
 			query.setReduce(false);
@@ -137,14 +138,15 @@ public class DBConnexion {
 		}
 		return response;
 	}
-	
-	public static ViewResponse retrieveViewResult(String metric, Calendar start, Calendar end){
+
+	public static ViewResponse retrieveViewResult(String metric,
+			Calendar start, Calendar end) {
 		System.setProperty("viewmode", viewMode);
 		checkView();
 		ViewResponse response = null;
 		CouchbaseClient client = establishConnexion();
 		View view = null;
-		if (client != null){
+		if (client != null) {
 			view = client.getView(docDesign, mainViewName);
 			Query query = new Query();
 			ComplexKey k1 = computeComplexKey(start, metric);
@@ -157,26 +159,26 @@ public class DBConnexion {
 		}
 		return response;
 	}
-	
+
 	protected static void flushDB() {
 		System.setProperty("viewmode", viewMode);
 		checkView();
 		CouchbaseClient client = establishConnexion();
 		ViewResponse response = null;
 		View view = null;
-		if (client != null){
+		if (client != null) {
 			view = client.getView(docDesign, allDocsViewName);
 			Query query = new Query();
 			query.setReduce(false);
 			query.setIncludeDocs(false);
 			response = client.query(view, query);
-			for (ViewRow row: response){
+			for (ViewRow row : response) {
 				try {
 					client.delete(row.getId(), PersistTo.ONE).get();
 				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
-			}			
+			}
 			endConnexion(client);
 		}
 	}
