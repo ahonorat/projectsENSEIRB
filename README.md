@@ -21,9 +21,9 @@ java -jar target/server1-0.0.1-SNAPSHOT-jar-with-dependencies.jar
 ```
 (from this current directory)
 
-Without any option, the programm will just print periodically (every 10 secs)
+Without any option the programm will just print periodically (every 10 secs)
 the documents existing in the bucket.
 Other options are :
- -d : create some random datas
- -f : flush DataBase at starting
- -h : print this help
+- -d : create some random datas
+- -f : flush DataBase at starting
+- -h : print this help
