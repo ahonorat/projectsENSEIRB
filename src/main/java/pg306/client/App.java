@@ -1,8 +1,9 @@
-package pg306.server1;
+package pg306.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Timer;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -15,6 +16,7 @@ import pg306.utils.CreateSampleDocuments;
  * 
  */
 public class App {
+		
 	@Option(name = "-f", usage = "flush DataBase at starting")
 	private boolean flush;
 
@@ -43,12 +45,14 @@ public class App {
 		if (help)
 			parser.printUsage(System.out);
 		else {
-			Monitor1 monit = new Monitor1();
+			Timer time = new Timer(); // Instantiate Timer Object
+			MonitorTask monit = new MonitorTask(); // Instantiate SheduledTask class
+			time.schedule(monit, 0, 10000); // Create Repetitively task for every 10 secs	
 
 			if (flush)
 				CreateSampleDocuments.flushDB();
 			if (datas)
-				CreateSampleDocuments.storeFakeDocs(monit);
+				CreateSampleDocuments.storeFakeDocs();
 			try {
 				BufferedReader br = new BufferedReader(new InputStreamReader(
 						System.in));

@@ -1,4 +1,4 @@
-package pg306.server1;
+package pg306.client;
 
 import java.util.Calendar;
 import java.util.List;
@@ -12,11 +12,11 @@ public class MonitorTask extends TimerTask {
 
 	@Override
 	public void run() {
-		System.out.println("coucou du moniteur1");
+		System.out.println("Monitor is working !");
 		Calendar previously = Calendar.getInstance();
 		previously.set(Calendar.YEAR,2013);
-		DBResult res = new DBResult("monitor1");
-		List<DataValue> list = res.getDataPointsBetween(previously, Calendar.getInstance());
+		DBResult res = new DBResult("sample");
+		List<DataValue> list = res.getDataValuesBetween(previously, Calendar.getInstance());
 		if (list.isEmpty())
 			System.out.println("\u001B[31mNo item found !\u001B[0m");
 		for(DataValue dv : list){

@@ -33,13 +33,13 @@ public class DBConnexion {
 													// when ready
 
 	private static String mainView = "function (doc, meta) {\n"
-			+ "  if (doc.documentType && doc.documentType == \"dataCollection\"){\n"
-			+ "    emit([doc.metric, doc.date.year,doc.date.month, doc.date.dayOfMonth,\n"
+			+ "  if (doc.name){\n"
+			+ "    emit([doc.name, doc.date.year,doc.date.month, doc.date.dayOfMonth,\n"
 			+ "          doc.date.hourOfDay, doc.date.minute, doc.date.second],\n"
 			+ "          null); \n  } \n} ";
 
 	private static String allDocsView = "function (doc, meta) {\n"
-			+ " if (doc.documentType && doc.documentType == \"dataCollection\"){\n"
+			+ " if (doc.name){\n"
 			+ "   emit(meta.id,null); \n } \n }";
 
 	private static CouchbaseClient establishConnexion() {

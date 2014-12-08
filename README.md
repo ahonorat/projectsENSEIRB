@@ -17,7 +17,7 @@ mvn package
 
 You can run the programm as following :
 ```
-java -jar target/server1-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+java -jar target/clientCB-0.0.1-SNAPSHOT-jar-with-dependencies.jar
 ```
 (from this current directory)
 
@@ -25,5 +25,5 @@ Without any option the programm will just print periodically (every 10 secs)
 the documents existing in the bucket.
 Other options are :
 - -d : create some random datas
-- -f : flush DataBase at starting
+- -f : flush DataBase at startup
 - -h : print this help

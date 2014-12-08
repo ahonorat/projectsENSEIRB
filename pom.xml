@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>pg306</groupId>
-	<artifactId>server1</artifactId>
+	<artifactId>clientCB</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>server1</name>
+	<name>clientCB</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
@@ -47,7 +47,7 @@
 							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>pg306.server1.App</mainClass>
+							<mainClass>pg306.client.App</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -81,7 +81,7 @@
 							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
-							<mainClass>pg306.server1.App</mainClass>
+							<mainClass>pg306.client.App</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

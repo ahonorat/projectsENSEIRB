@@ -13,13 +13,11 @@ public class CreateSampleDocuments {
 	    return randomNum;
 	}
 
-	public static void storeFakeDocs(MonitorAbstract monit){
+	public static void storeFakeDocs(){
 		int nbDocs = randInt(5,10);
 		for (int i = 0; i<nbDocs; i++){
 			Calendar cal = Calendar.getInstance();
-			DBDocument doc = new DBDocument("dataCollection", cal, monit.getName(), "N/A");
-			DataValue dv = new DataValue(monit.getName(), "N/A", cal, randInt(0,100));
-			doc.addDataValue(dv);
+			DBDocument doc = new DBDocument(new DataValue("sample", cal, randInt(0,100)));
 			DBConnexion.sendDocument(doc);		
 		}			
 	}
