@@ -1,0 +1,13 @@
+#PBS -N test
+# temps en heure:minutes:secondes
+#PBS -l walltime=03:00:00
+# nombre de noeuds et de coeurs
+#PBS -l nodes=1:ppn=8
+#PBS -l naccesspolicy=singlejob
+module load compiler/intel
+# répertoire de travail dans lequel on soumet le batch
+cd Documents/TDP/TDP1/bin/
+export MKL_NUM_THREADS=8
+export MYLIB_NUM_THREADS=8
+###./test-myblas
+./benchmark
