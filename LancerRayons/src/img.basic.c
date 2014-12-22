@@ -20,6 +20,8 @@
 #include "const.h"
 #include "type.h"
 #include "type_spec.h"
+#include "mpi.h"
+#include "../ccan/list/list.h"
 
 #include "lanceur.h"
 #include "scn.h"
@@ -77,6 +79,8 @@ img (const char *FileNameImg)
   INIT_FILE (FileImg, Name, "w");
   fprintf (FileImg, "P6\n%d %d\n255\n", Img.Pixel.i, Img.Pixel.j);
   INIT_MEM (TabColor, Img.Pixel.i, COLOR);
+
+
 
   for (j = 0; j < Img.Pixel.j; j++) {
     for (i = 0; i < Img.Pixel.i; i++) {
