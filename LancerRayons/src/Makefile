@@ -56,11 +56,11 @@ HDR_CAMERA = cmr.h
 
 
 #pour changer de type de lancer de rayons, mettre le bon .c
-SRC_IMAGE = img.basic.c
+SRC_IMAGE = img.mpi-thread.c
 HDR_IMAGE = $(SRC_IMAGE:.c=.h)
 
 #pour changer de type de lancer de rayons, mettre le bon .c
-SRC_ALL_IMAGE = img.basic.c
+SRC_ALL_IMAGE = img.mpi-thread.c
 
 #pour changer de type de calcul d'illumination, mettre le bon .c
 SRC_SCENE = scn.image.c
@@ -114,10 +114,10 @@ uninstall:
 	cd $(BIN_DIR) ;	$(RM) $(BIN)
 
 lanceur: lanceur.o $(OBJ) $(SRC_IMAGE:.c=.o)
-	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 .c.o :
-	$(CC) $(CPPFLAGS) $(CFLAGS)  -c $<
+	$(MPICC) $(CPPFLAGS) $(CFLAGS)  -c $<
 
 
 #$(OBJ): $(HDR)
@@ -143,6 +143,12 @@ img.basic.o: img.h
 img.basic.o: ../include/type.h ../include/macro.h 
 img.basic.o: ../include/exit-if.h ../include/const.h ../include/type_spec.h
 img.basic.o: ett.h geo.h lanceur.h scn.h bnd.h cmr.h
+img.mpi-thread.o: img.mpi-thread.c ../include/list.h \
+ ../include/container_of.h ../include/config.h ../include/check_type.h \
+ ../include/types_tdp.h ../include/list.h img.h ../include/type.h \
+ ../include/macro.h ../include/exit-if.h ../include/const.h \
+ ../include/type_spec.h ../include/type.h ett.h geo.h lanceur.h scn.h \
+ bnd.h cmr.h
 scn.image.o: ../include/macro.h
 scn.image.o: ../include/exit-if.h
 scn.image.o: ../include/const.h ../include/type.h ../include/type_spec.h
