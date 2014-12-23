@@ -20,8 +20,6 @@
 #include "const.h"
 #include "type.h"
 #include "type_spec.h"
-#include "mpi.h"
-#include "../ccan/list/list.h"
 
 #include "lanceur.h"
 #include "scn.h"
