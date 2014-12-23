@@ -275,7 +275,6 @@ img (const char *FileNameImg)
   } else {
     //envoi de tous les carreaux calculés
   }
-
   //TODO : si on est un processus quelconque, attendre que tous les workers soient endormis, puis envoyer toutes les tuiles terminées au processus root
   //TODO : si on est le processus root, réceptionner toutes les tuiles
 
