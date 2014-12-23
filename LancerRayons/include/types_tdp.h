@@ -6,7 +6,7 @@
 
 #define NB_THREADS 2
 
-enum tag {ASK, END, TILE};
+enum tag {ASK, END, TILE_NUMBER, TILE};
 
 struct task_list
 {
