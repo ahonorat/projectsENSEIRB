@@ -6,7 +6,7 @@
 
 #define NB_THREADS 2
 
-enum tag {ASK, END, TILE_NUMBER, TILE};
+enum tag {ASK, END, TILE};
 
 struct task_list
 {
@@ -18,9 +18,8 @@ struct task_list
 struct task
 {
   struct list_node list;
-  BOOL done;
-  INDEX i,j;
-  COLOR color;
+  INDEX i,j; //int
+  COLOR color; //3*float
 };
 
 
