@@ -6,7 +6,12 @@
 
 #define NB_THREADS 2
 
-enum tag {ASK, END, TILE};
+#define TILE_SIZE 16
+
+// why not ? it should be large enough ...
+#define PRIME_NUMBER 10111
+
+enum tag {ASK, END, TILE, INIT, FINISH};
 
 struct task_list
 {
@@ -19,7 +24,8 @@ struct task
 {
   struct list_node list;
   INDEX i,j; //int
-  COLOR color; //3*float
+  INDEX end_i, end_j; //int (usefull if last blocks are smaller)
+  COLOR color[TILE_SIZE*TILE_SIZE]; //TILE_SIZE*TILE_SIZE*3*float ; ROW MAJOR
 };
 
 
