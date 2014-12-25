@@ -210,18 +210,20 @@ thread_comm(void* arg)
     }
     // The process didn't receive anything, so you check if the process need other tasks
     else{
-      pthread_mutex_lock(&mutex_todo);
-      if(list_empty(&(todo_list.children))){
-	pthread_mutex_unlock(&mutex_todo);
-	if(!asking){
-	  //Send an ASK message
-	  MPI_Isend(&rank, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD, &request);
-	  MPI_Request_free(&request);
-	  asking = 1;
+      if(!end){
+	pthread_mutex_lock(&mutex_todo);
+	if(list_empty(&(todo_list.children))){
+	  pthread_mutex_unlock(&mutex_todo);
+	  if(!asking){
+	    //Send an ASK message
+	    MPI_Isend(&rank, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD, &request);
+	    MPI_Request_free(&request);
+	    asking = 1;
+	  }
 	}
-      }
-      else{
-	pthread_mutex_unlock(&mutex_todo);
+	else{
+	  pthread_mutex_unlock(&mutex_todo);
+	}
       }
     }
     //No call to MPI_Wait() is needed, since we don't need to wait for the message to be sent to continue.
