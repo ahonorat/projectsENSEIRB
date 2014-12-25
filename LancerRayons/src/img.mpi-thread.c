@@ -50,6 +50,7 @@ int end = 0;
 //->Checking if the todo_list is empty, and if so, send an ASK message
 //The problem is that when the todo_list is empty, it will send an ASK message at each iteration. Thus, we use a boolean (asking), to know wether we have already sent an ASK message or not, so that we can avoid sending multiple ones at a time
 int asking = 0;
+int rank;
 
 static IMG_BASIC  Img;
 
@@ -90,40 +91,39 @@ thread_compute(void* arg)
 {
   int i,j,k,l;
   sem_wait(&number_of_task);
-  printf("Computation begun\n");
+  printf("#%d Computation begun\n", rank);
   while(1){
-    if(end){
-      printf("Thread exit\n");
-      pthread_exit(NULL);
-    }
-    else{
-      struct task * task_to_compute;
-      // task_todo pop
-      pthread_mutex_lock(&mutex_todo);
-      if(!list_empty(&(todo_list.children))){
-	task_to_compute = list_pop(&todo_list.children, struct task, list);
-	--todo_list.num_children;
-	pthread_mutex_unlock(&mutex_todo);
-	//printf("Task being computed\n");
-	// task compute
-	for (i = task_to_compute->i, k = 0; i <= task_to_compute->end_i; i++, k++){
-	  for (j = task_to_compute->j, l = 0; j <= task_to_compute->end_j; j++, l++){
-	    task_to_compute->color[k*TILE_SIZE+l] = pixel_basic (j, i);
-	    //printf("i: %d, j: %d, r: %e, g: %e, b: %e\n", i, j, task_to_compute->color[k*TILE_SIZE+l].r, task_to_compute->color[k*TILE_SIZE+l].g, task_to_compute->color[k*TILE_SIZE+l].b);
-	  }
+    struct task * task_to_compute;
+    // task_todo pop
+    pthread_mutex_lock(&mutex_todo);
+    if(!list_empty(&(todo_list.children))){
+      task_to_compute = list_pop(&todo_list.children, struct task, list);
+      --todo_list.num_children;
+      pthread_mutex_unlock(&mutex_todo);
+      //printf("#%d Task being computed\n", rank);
+      // task compute
+      for (i = task_to_compute->i, k = 0; i <= task_to_compute->end_i; i++, k++){
+	for (j = task_to_compute->j, l = 0; j <= task_to_compute->end_j; j++, l++){
+	  task_to_compute->color[k*TILE_SIZE+l] = pixel_basic (j, i);
+	  //printf("#%d i: %d, j: %d, r: %e, g: %e, b: %e\n", rank, i, j, task_to_compute->color[k*TILE_SIZE+l].r, task_to_compute->color[k*TILE_SIZE+l].g, task_to_compute->color[k*TILE_SIZE+l].b);
 	}
-	// task_done add
-	pthread_mutex_lock(&mutex_done);
-	list_add(&done_list.children, &task_to_compute->list);
-	++done_list.num_children;
-	pthread_mutex_unlock(&mutex_done);
-      } else { 
-	pthread_mutex_unlock(&mutex_todo);
-	printf("List empty\n");
-	sem_wait(&number_of_task);
       }
+      // task_done add
+      pthread_mutex_lock(&mutex_done);
+      list_add(&done_list.children, &task_to_compute->list);
+      ++done_list.num_children;
+      pthread_mutex_unlock(&mutex_done);
+    } else { 
+      pthread_mutex_unlock(&mutex_todo);
+      if(end){
+	printf("#%d Thread exit\n", rank);
+	pthread_exit(NULL);
+      }
+      printf("#%d List empty\n", rank);
+      sem_wait(&number_of_task);
     }
   }
+  
 }
 
 
@@ -133,7 +133,7 @@ thread_comm(void* arg)
   int size, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  printf("Communication begun\n");  
+  printf("#%d Communication begun\n", rank);  
   while(1){
     int flag;
     MPI_Status status_p;
@@ -145,12 +145,13 @@ thread_comm(void* arg)
       switch(status_p.MPI_TAG){
 	//Message asking for another tile. Here, the content of the message is an int corresponding to the original source of the message.
       case ASK :
-	printf("Ask message received\n");
+	printf("#%d Ask message received\n", rank);
 	//Reception of the message
 	MPI_Recv(&content, 1, MPI_INT, status_p.MPI_SOURCE, status_p.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	//If the message originates from the process himself, that means nobody has tasks left for sharing. The process will thus start the ending process.
 	if(content == rank){
 	  //actually only the tag is important
+	  end = 1;
 	  MPI_Isend(&rank, 0, MPI_INT, (rank+1)%size, END, MPI_COMM_WORLD, &request);
 	  MPI_Request_free(&request);
 	}
@@ -162,10 +163,15 @@ thread_comm(void* arg)
 	    MPI_Isend(&content, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD, &request);
 	    MPI_Request_free(&request);
 	  }
-	  //If there is some work left, pops a tile number from the pile and sends it to the asker
+	  //If there is some work left, pops a tile from the pile and sends it to the asker
 	  else{
-	    if (todo_list.num_children > 2*NB_THREADS) //there is plenty of tasks
+	    // this if statement doesn't work very well, it seems more complicated to manage semaphores
+	    // sometimes, a few tiles may not be computed ... and we don't know why
+	    // if length = 1, no problem
+	    if (todo_list.num_children > 2*NB_THREADS){ //there is plenty of tasks
 	      length = NB_THREADS; //so we send as many tasks as threads
+	      printf("#%d There is plenty of tasks\n", rank);
+	    }
 	    struct task message[length];
 	    for(k = 0; k < length ; k++){
 	      struct task * task_to_compute;
@@ -174,14 +180,14 @@ thread_comm(void* arg)
 	      message[k] = *task_to_compute;
 	    }
 	    pthread_mutex_unlock(&mutex_todo);
-	    MPI_Isend(&message, length, task_type_todo, content, TILE, MPI_COMM_WORLD, &request);
+	    MPI_Isend(&message[0], length, task_type_todo, content, TILE, MPI_COMM_WORLD, &request);
 	    MPI_Request_free(&request);
 	  }
 	}
 	break;
 	//Message signifying that nobody has any task left, and that the program his reaching his end
       case END :
-	printf("End message received\n");
+	printf("#%d End message received\n", rank);
 	//Reception of the messages
 	MPI_Recv(&content, 1, MPI_INT, status_p.MPI_SOURCE, status_p.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	//If end equals 0, then it's the first end message we receive. That means that the ending message still haven't gone through the whole circle, and that some processes potentially haven't received the message. Thus, the process will pass it to its successor
@@ -200,7 +206,7 @@ thread_comm(void* arg)
 	break;
 	//The process received a tile number he asked for. The content of the message is the tile number
       case TILE :
-	printf("Tile message received\n");
+	printf("#%d Tile message received\n", rank);
 	//Reception of the message
 	MPI_Get_count(&status_p, task_type_todo, &length);
 	struct task message[length];
@@ -212,8 +218,12 @@ thread_comm(void* arg)
 	  *task_to_compute = message[k];
 	  list_add(&todo_list.children, &task_to_compute->list);
 	  ++todo_list.num_children;
-	  sem_post(&number_of_task);
+	  printf("#%d Received i: %d, j: %d, ei: %d, ej: %d\n", rank, task_to_compute->i, task_to_compute->j, task_to_compute->end_i, task_to_compute->end_j);
 	}
+	int sem;
+	sem_getvalue(&number_of_task, &sem);
+	for(k = sem; k<NB_THREADS; k++)
+	  sem_post(&number_of_task);
 	pthread_mutex_unlock(&mutex_todo);
 	break;
       }
@@ -225,7 +235,7 @@ thread_comm(void* arg)
 	if(list_empty(&(todo_list.children))){
 	  pthread_mutex_unlock(&mutex_todo);
 	  if(!asking){
-	    printf("Ask message sent\n");
+	    printf("#%d Ask message sent\n", rank);
 	    //Send an ASK message
 	    MPI_Isend(&rank, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD, &request);
 	    MPI_Request_free(&request);
@@ -254,10 +264,10 @@ img (const char *FileNameImg)
   int m ,n;
   pthread_t threads[NB_THREADS];
   int res_init;
-  int rank, size;
+  int size;
   MPI_Init_thread(NULL,NULL,MPI_THREAD_FUNNELED, &res_init);
   if (res_init != MPI_THREAD_FUNNELED){
-    printf("Exiting process.\n");
+    printf("#%d Exiting process.\n", rank);
     MPI_Finalize();
     return ;
   }
@@ -287,24 +297,28 @@ img (const char *FileNameImg)
   int a_of_b1[4] = {1,1,1,1};
   MPI_Aint a_of_d1[4];
   MPI_Datatype a_of_t1[4] = {MPI_INT,MPI_INT,MPI_INT,MPI_INT};
-  struct task useless_task;
-  MPI_Get_address(&useless_task, &i1);
-  MPI_Get_address(&useless_task.i, &i2); a_of_d1[0] = i2-i1 ;
-  MPI_Get_address(&useless_task.j, &i2); a_of_d1[1] = i2-i1 ;
-  MPI_Get_address(&useless_task.end_i, &i2); a_of_d1[2] = i2-i1 ;
-  MPI_Get_address(&useless_task.end_j, &i2); a_of_d1[3] = i2-i1 ;
-  MPI_Type_create_struct(4, a_of_b1, a_of_d1, a_of_t1,&task_type_todo);
+  MPI_Datatype tmp_type;
+  MPI_Aint extent;
+  struct task useless_task[2];
+  MPI_Get_address(&useless_task[0], &i1);
+  MPI_Get_address(&useless_task[0].i, &i2); a_of_d1[0] = i2-i1 ;
+  MPI_Get_address(&useless_task[0].j, &i2); a_of_d1[1] = i2-i1 ;
+  MPI_Get_address(&useless_task[0].end_i, &i2); a_of_d1[2] = i2-i1 ;
+  MPI_Get_address(&useless_task[0].end_j, &i2); a_of_d1[3] = i2-i1 ;
+  MPI_Get_address(&useless_task[1], &i2); extent = i2-i1 ;
+  MPI_Type_create_struct(4, a_of_b1, a_of_d1, a_of_t1,&tmp_type);
+  MPI_Type_create_resized(tmp_type, 0, extent, &task_type_todo);
   MPI_Type_commit(&task_type_todo); // this type can represent the first pixel location of a tile or just a pixel
 
   int a_of_b2[5] = {1,1,1,1,TILE_SIZE*TILE_SIZE};
   MPI_Aint a_of_d2[5];
   MPI_Datatype a_of_t2[5] = {MPI_INT,MPI_INT,MPI_INT,MPI_INT,color_type};
-  MPI_Get_address(&useless_task, &i1);
-  MPI_Get_address(&useless_task.i, &i2); a_of_d2[0] = i2-i1 ;
-  MPI_Get_address(&useless_task.j, &i2); a_of_d2[1] = i2-i1 ;  
-  MPI_Get_address(&useless_task.end_i, &i2); a_of_d2[2] = i2-i1 ;
-  MPI_Get_address(&useless_task.end_j, &i2); a_of_d2[3] = i2-i1 ;
-  MPI_Get_address(&useless_task.color, &i2); a_of_d2[4] = i2-i1 ;
+  MPI_Get_address(&useless_task[0], &i1);
+  MPI_Get_address(&useless_task[0].i, &i2); a_of_d2[0] = i2-i1 ;
+  MPI_Get_address(&useless_task[0].j, &i2); a_of_d2[1] = i2-i1 ;  
+  MPI_Get_address(&useless_task[0].end_i, &i2); a_of_d2[2] = i2-i1 ;
+  MPI_Get_address(&useless_task[0].end_j, &i2); a_of_d2[3] = i2-i1 ;
+  MPI_Get_address(&useless_task[0].color, &i2); a_of_d2[4] = i2-i1 ;
   MPI_Type_create_struct(5, a_of_b2, a_of_d2, a_of_t2,&task_type_done);
   MPI_Type_commit(&task_type_done); // this type represent a computed pixel
 
@@ -342,14 +356,14 @@ img (const char *FileNameImg)
   for (k = 0; k<NB_THREADS; k++)
     pthread_create(&threads[k],NULL,thread_compute,NULL);  
   
-  printf("Threads created\n");
+  printf("#%d Threads created\n", rank);
 
   thread_comm(NULL);
 
   for (k = 0; k<NB_THREADS; k++)
     pthread_join(threads[k],NULL);
 
-  printf("All threads joined\n");
+  printf("#%d All threads joined\n", rank);
 
   if (rank == 0){
     int proc_tiles_counts[size-1];
@@ -406,7 +420,7 @@ img (const char *FileNameImg)
     }
   }
   
-  printf("Img rebuild achieved\n");
+  printf("#%d Img rebuild achieved\n", rank);
 	
 
   //free of all tasks, there is no more in todo_list
