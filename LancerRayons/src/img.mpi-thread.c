@@ -144,6 +144,7 @@ thread_comm(void* arg)
 	if(content == rank){
 	  //END messages are empty since only the tag is important
 	  MPI_Isend(NULL, 0, MPI_INT, (rank+1)%size, END, MPI_COMM_WORLD, &request);
+	  MPI_Request_free(&request);
 	}
 	else{
 	  //If there is no work left, pass the message
@@ -151,6 +152,7 @@ thread_comm(void* arg)
 	  if(list_empty(&(todo_list.children))){
 	    pthread_mutex_unlock(&mutex_todo);
 	    MPI_Isend(&content, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD, &request);
+	    MPI_Request_free(&request);
 	  }
 	  //If there is some work left, pops a tile number from the pile and sends it to the asker
 	  else{
@@ -165,6 +167,7 @@ thread_comm(void* arg)
 	    }
 	    pthread_mutex_unlock(&mutex_todo);
 	    MPI_Isend(&message, length, task_type_todo, content, TILE, MPI_COMM_WORLD, &request);
+	    MPI_Request_free(&request);
 	  }
 	}
 	break;
@@ -175,6 +178,7 @@ thread_comm(void* arg)
 	//If end equals 0, then it's the first end message we receive. That means that the ending message still haven't gone through the whole circle, and that some processes potentially haven't received the message. Thus, the process will pass it to its successor
 	if(end == 0){
 	  MPI_Isend(NULL, 0, MPI_INT, (rank+1)%size, END, MPI_COMM_WORLD, &request);
+	  MPI_Request_free(&request);
 	}
 	end = 1;
 	//Wakes up all the working threads so that they can call pthread_exit()
@@ -212,6 +216,7 @@ thread_comm(void* arg)
 	if(!asking){
 	  //Send an ASK message
 	  MPI_Isend(&rank, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD, &request);
+	  MPI_Request_free(&request);
 	  asking = 1;
 	}
       }
@@ -220,7 +225,6 @@ thread_comm(void* arg)
       }
     }
     //No call to MPI_Wait() is needed, since we don't need to wait for the message to be sent to continue.
-    MPI_Request_free(&request);
   }
 }
 
@@ -336,30 +340,50 @@ img (const char *FileNameImg)
 
   
   if (rank == 0){
-    //TODO : réception de tous les carreaux calculés
-    INIT_MEM (TabColor, Img.Pixel.i, COLOR);
-    // attention il faut recréer un TabColor par j, ordre à prendre en compte
+    int proc_tiles_counts[size-1];
+    for (k = 1 ; k<size ; k++){
+      MPI_Recv(&proc_tiles_counts[k-1], 1, MPI_INT, k, FINISH, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+    // attention les indices i <-> sont peut-être inversés
+    INIT_MEM (TabColor, Img.Pixel.i*Img.Pixel.j, COLOR);
+    for (k = 1 ; k<size ; k++){
+      struct task t;
+      MPI_Recv(&t, 1, task_type_done, k, FINISH, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      for (i = t.i ; i <= t.end_i ; i++){
+	for (j = t.j ; j <= t.end_j ; j++){
+	  TabColor[i*Img.Pixel.j+j] = t.color[(i*Img.Pixel.j+j)%TILE_SIZE]; 
+	}
+      }
+    }
+    struct task* t;
+    list_for_each(&done_list.children, t, list){
+      for (i = t->i ; i <= t->end_i ; i++){
+	for (j = t->j ; j <= t->end_j ; j++){
+	  TabColor[i*Img.Pixel.j+j] = t->color[(i*Img.Pixel.j+j)%TILE_SIZE]; 
+	}
+      }
+    }
+    
+    Color = TabColor;
     for (j = 0; j < Img.Pixel.j; j++) {
-      for (i = 0, Color = TabColor; i < Img.Pixel.i; i++, Color++) {
-	Byte = Color->r < 1.0 ? 255.0*Color->r : 255.0;
-	putc (Byte, FileImg);
-	Byte = Color->g < 1.0 ? 255.0*Color->g : 255.0;
-	putc (Byte, FileImg);
-	Byte = Color->b < 1.0 ? 255.0*Color->b : 255.0;
-	putc (Byte, FileImg);
+      for (i = 0 ; i < Img.Pixel.i; i++, Color++) {
+    	Byte = Color->r < 1.0 ? 255.0*Color->r : 255.0;
+    	putc (Byte, FileImg);
+    	Byte = Color->g < 1.0 ? 255.0*Color->g : 255.0;
+    	putc (Byte, FileImg);
+    	Byte = Color->b < 1.0 ? 255.0*Color->b : 255.0;
+    	putc (Byte, FileImg);
       }
       fflush (FileImg);
     }
     EXIT_MEM (TabColor);
     EXIT_FILE (FileImg);
   } else {
-    //TODO : envoi de tous les carreaux calculés
-    /* struct task* t; */
-    /* list_for_each(&done_list.children, t, list){ */
-      
-    /* } */
-
-
+    MPI_Send(&done_list.num_children, 1, MPI_INT, 0, FINISH, MPI_COMM_WORLD);
+    struct task* t;
+    list_for_each(&done_list.children, t, list){
+      MPI_Send(t, 1, task_type_done, 0, FINISH, MPI_COMM_WORLD);      
+    }
   }
 
   //free of all tasks, there is no more in todo_list
