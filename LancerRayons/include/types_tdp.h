@@ -25,7 +25,7 @@ struct task
   struct list_node list;
   INDEX i,j; //int
   INDEX end_i, end_j; //int (usefull if last blocks are smaller)
-  COLOR color[TILE_SIZE*TILE_SIZE]; //TILE_SIZE*TILE_SIZE*3*float ; ROW MAJOR
+  COLOR color[TILE_SIZE*TILE_SIZE]; //TILE_SIZE*TILE_SIZE*3*float ; j MAJOR?
 };
 
 

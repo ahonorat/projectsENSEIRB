@@ -33,7 +33,7 @@ MPICC = mpicc
 CPPFLAGS = -I../include -I. $(DEBUG) $(ZCAT)
 #CFLAGS = -O -Wall
 CFLAGS = -g -Wall
-LDLIBS = -lm
+LDLIBS = -lm -pthread
 
 # application : fichier executable
 BIN = lanceur
@@ -114,7 +114,7 @@ uninstall:
 	cd $(BIN_DIR) ;	$(RM) $(BIN)
 
 lanceur: lanceur.o $(OBJ) $(SRC_IMAGE:.c=.o)
-	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+	$(MPICC) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 .c.o :
 	$(MPICC) $(CPPFLAGS) $(CFLAGS)  -c $<
