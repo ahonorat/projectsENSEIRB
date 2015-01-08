@@ -55,9 +55,7 @@ void myblas_daxpy(int N, double alpha, const double *X, int incX, double *Y, int
 void myblas_dger(const MYBLAS_ORDER order, const int M, const int N,
                 const double alpha, const double *X, const int incX,
                 const double *Y, const int incY, double *A, const int lda);
-void myblas_dger_bloc_parallel(const MYBLAS_ORDER order, const int M, const int N,
-                const double alpha, const double *X, const int incX,
-		const double *Y, const int incY, double *A, const int lda);
 
+void myblas_dscal(const int N, const double alpha, double *X, const int incX);
 
 #endif

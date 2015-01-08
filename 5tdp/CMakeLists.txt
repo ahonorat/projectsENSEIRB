@@ -10,6 +10,10 @@ if(DEFINED USE_MKL)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mkl:${USE_MKL} -DUSE_MKL")
 endif()
 
+file(GLOB_RECURSE mylapack_files
+       "src/mylapack/*.c"
+       "src/mylapack/*.h")
+
 file(GLOB_RECURSE myblas_files
        "src/myblas/*.c"
        "src/myblas/*.h")
@@ -33,24 +37,28 @@ include_directories("${PROJECT_INCLUDE_DIR}")
 
 add_library(myblas SHARED ${myblas_files})
 
+add_library(mylapack SHARED ${mylapack_files})
 
 
 add_executable("test-util"
 			src/test/test-util.c
 			${util_files})
 target_link_libraries("test-util" myblas)
+target_link_libraries("test-util" mylapack)
 target_link_libraries ("test-util" ${CMAKE_THREAD_LIBS_INIT})
 
 add_executable("test-myblas"
 			src/test/test-myblas.c
 			${util_files})
 target_link_libraries("test-myblas" myblas ${BLAS_LIBRARIES})
+target_link_libraries("test-util" mylapack)
 target_link_libraries ("test-myblas" ${CMAKE_THREAD_LIBS_INIT})
 
 add_executable("benchmark"
 			${util_files}
 			${benchmark_files})
 target_link_libraries("benchmark" myblas ${BLAS_LIBRARIES})
+target_link_libraries("test-util" mylapack)
 target_link_libraries ("benchmark" ${CMAKE_THREAD_LIBS_INIT})
 
 
