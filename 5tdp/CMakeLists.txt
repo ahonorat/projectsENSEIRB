@@ -51,8 +51,15 @@ add_executable("test-myblas"
 			src/test/test-myblas.c
 			${util_files})
 target_link_libraries("test-myblas" myblas ${BLAS_LIBRARIES})
+target_link_libraries ("test-myblas" ${CMAKE_THREAD_LIBS_INIT})
+
+add_executable("test-mylapack"
+			src/test/test-mylapack.c
+			${util_files})
+target_link_libraries("test-myblas" myblas ${BLAS_LIBRARIES})
 target_link_libraries("test-util" mylapack)
 target_link_libraries ("test-myblas" ${CMAKE_THREAD_LIBS_INIT})
+
 
 add_executable("benchmark"
 			${util_files}

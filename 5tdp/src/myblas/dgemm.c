@@ -149,7 +149,7 @@ void myblas_dgemm_bloc_parallel(const MYBLAS_ORDER Order, const MYBLAS_TRANSPOSE
     assert(beta == 1.0);
 
     int m,n;
-    int i=0;
+    int i=0,j;
     pthread_t thread[myblas_dgemm_nbProc];
     struct bloc_info bloc[myblas_dgemm_nbProc];
 
@@ -166,7 +166,6 @@ void myblas_dgemm_bloc_parallel(const MYBLAS_ORDER Order, const MYBLAS_TRANSPOSE
             i++;
         }
     }
-
-    for(i=0;i<myblas_dgemm_nbProc;i++)
-        pthread_join(thread[i],NULL);
+    for(j=0;j<i;j++)
+      pthread_join(thread[j],NULL);
 }

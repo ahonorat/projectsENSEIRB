@@ -7,6 +7,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "myblas/myblas.h"
 #include "util/util.h"
@@ -72,7 +73,7 @@ void tab_nullify(double* tab, int N)
 
 void test_dgemm()
 {
-    printf("Testing ddot:\n");
+    printf("Testing dgemm:\n");
 
     int m = MAT_SIZE_M/2;
     int n = MAT_SIZE_N/2;
@@ -116,9 +117,39 @@ void test_dgemm()
     free(C2);
 }
 
+void test_blas_tdp5(){
+  
+  int i;
+
+  double *X = matrix_rand(MAT_SIZE_M , 1);
+  double *Y = matrix_rand(1, MAT_SIZE_N);
+  double *A = matrix_rand(MAT_SIZE_M,MAT_SIZE_N);
+  double *X_test = malloc(sizeof(double)*MAT_SIZE_M);
+  double *A_test = malloc(sizeof(double)*MAT_SIZE_N*MAT_SIZE_M);
+  memcpy(X_test, X, MAT_SIZE_M*sizeof(double));
+  tab_nullify(A_test,MAT_SIZE_M*MAT_SIZE_N);
+
+  printf("Testing dscal:... ");  
+  myblas_dscal(MAT_SIZE_M, 2.0, X, 1);
+  cblas_dscal(MAT_SIZE_M, 2.0, X_test, 1);
+  for(i=0;i<MAT_SIZE_M;i++)
+        ASSERT_EQ(X[i],X_test[i]);
+  printf("ok\n");
+
+  printf("Testing dger:... ");
+  myblas_dger(CblasColMajor, MAT_SIZE_M, MAT_SIZE_N, 1.0, X, 1, Y, 1, A, MAT_SIZE_M);
+  cblas_dger(CblasColMajor, MAT_SIZE_M, MAT_SIZE_N, 1.0, X, 1, Y, 1, A_test, MAT_SIZE_M);
+  for(i=0;i<MAT_SIZE_M*MAT_SIZE_N;i++)
+        ASSERT_EQ(A[i],A_test[i]);
+  printf("ok\n");
+
+}
+
+
 int main()
 {
     test_ddot();
     test_dgemm();
+    test_blas_tdp5();
     return 0;
 }
