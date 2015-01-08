@@ -2,6 +2,8 @@
  * tests des routines de myblas:
  *  ddot
  *  dgemm
+ *  dscal
+ *  dger
  * Les tests sont des tests comparatif avec une librairie systeme (mkl, cblas...)
  **/
 
@@ -124,8 +126,8 @@ void test_blas_tdp5(){
   double *X = matrix_rand(MAT_SIZE_M , 1);
   double *Y = matrix_rand(1, MAT_SIZE_N);
   double *A = matrix_rand(MAT_SIZE_M,MAT_SIZE_N);
-  double *X_test = malloc(sizeof(double)*MAT_SIZE_M);
-  double *A_test = malloc(sizeof(double)*MAT_SIZE_N*MAT_SIZE_M);
+  double *X_test = matrix_alloc(MAT_SIZE_M,1);
+  double *A_test = matrix_alloc(MAT_SIZE_M,MAT_SIZE_N);
   memcpy(X_test, X, MAT_SIZE_M*sizeof(double));
   tab_nullify(A_test,MAT_SIZE_M*MAT_SIZE_N);
 
@@ -142,6 +144,12 @@ void test_blas_tdp5(){
   for(i=0;i<MAT_SIZE_M*MAT_SIZE_N;i++)
         ASSERT_EQ(A[i],A_test[i]);
   printf("ok\n");
+
+  free(X);
+  free(Y);
+  free(A);
+  free(X_test);
+  free(A_test);
 
 }
 
