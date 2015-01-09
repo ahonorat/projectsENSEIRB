@@ -100,15 +100,17 @@ int main(int argc, char* argv[])
 	    cell(BS+1,    i) = cell( 1,  i);
 	}
 
-	for (i = 1; i <= BS; i++) {
-	    for (j = 1; j <= BS; j++) {
-		ngb( i, j ) =
-		    cell( i-1, j-1 ) + cell( i, j-1 ) + cell( i+1, j-1 ) +
-		    cell( i-1, j   ) +                  cell( i+1, j   ) +
-		    cell( i-1, j+1 ) + cell( i, j+1 ) + cell( i+1, j+1 );
-	    }
+	//calcul du nombre de voisins
+	for (j = 1; j <= BS; j++) {
+	  for (i = 1; i <= BS; i++) {
+	    ngb( i, j ) =
+	      cell( i-1, j-1 ) + cell( i, j-1 ) + cell( i+1, j-1 ) +
+	      cell( i-1, j   ) +                  cell( i+1, j   ) +
+	      cell( i-1, j+1 ) + cell( i, j+1 ) + cell( i+1, j+1 );
+	  }
 	}
 
+	//mise à jour de la matrice
 	num_alive = 0;
 	for (i = 1; i <= BS; i++) {
 	    for (j = 1; j <= BS; j++) {
