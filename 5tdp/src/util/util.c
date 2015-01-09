@@ -48,6 +48,33 @@ double* matrix_rand(int m, int n)
     return mat;
 }
 
+void tab_nullify(double* tab, int N)
+{
+    int i;
+    for(i=0;i<N;i++)
+        tab[i]=0.0;
+}
+
+
+void matrix_AtoLU(int m, int n, double* a, int lda, double* l, int ldl, double* u, int ldu)
+{
+  int i,j;
+  for (i = 0; i < m; i++)
+    for (j = 0; j < m; j++)
+      l[i+j*ldl] = 0.0;
+  for (i = 0; i < m; i++)
+    for (j = 0; j < n; j++)
+      u[i+j*ldu] = 0.0;
+  for (i = 0; i < m; i++)
+    for (j = i; j < n; j++)
+      u[i+j*ldu] = a[i+j*lda];
+  for (i = 0; i < m; i++)
+    l[i+i*ldl] = 1.0;
+  for (i = 0; i < m; i++)
+    for (j = 0; j < i; j++)
+      l[i+j*ldl] = a[i+j*lda];
+};
+
 void affiche(int m, int n, double* a, int lda, FILE* flux)
 {
     int i, j;

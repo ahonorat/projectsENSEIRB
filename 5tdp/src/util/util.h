@@ -9,6 +9,8 @@ double* vector_alloc(int n);
 double* vector_rand(int n);
 double* matrix_alloc(int m, int n);
 double* matrix_rand(int m, int n);
+void tab_nullify(double* tab, int N);
+void matrix_AtoLU(int m, int n, double* a, int lda, double* l, int ldl, double* u, int ldu);
 // Affichage d'une matrice m X n dans le flux spécifié
 void affiche(int m, int n, double* a, int lda, FILE* flux);
 

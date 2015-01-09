@@ -66,13 +66,6 @@ void test_ddot()
     free(vec);
 }
 
-void tab_nullify(double* tab, int N)
-{
-    int i;
-    for(i=0;i<N;i++)
-        tab[i]=0.0;
-}
-
 void test_dgemm()
 {
     printf("Testing dgemm:\n");
