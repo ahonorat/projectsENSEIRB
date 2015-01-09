@@ -3,6 +3,8 @@
 #include "../myblas/myblas.h"
 #include "mylapack.h"
 
+#include "../util/util.h"
+
 //TODO : gérer le cas où l'élément diagonal est nul en échangeant la ligne avec une ligne où l'élément de colonne k n'est pas nul
 //TODO : gérer le cas où M!=N
 //Column major version

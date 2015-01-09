@@ -8,7 +8,7 @@
 
 double rand_double(){
   double res = (double) rand()/RAND_MAX;
-  res *= DBL_MAX;
+  res *= 10;
   res = (rand()%2 == 0)?(res):(-res);
   return res;
 }
@@ -44,7 +44,7 @@ double* matrix_rand(int m, int n)
     int i, j;
     for(j=0; j<n; j++)
         for(i=0; i<m; i++)
-            mat[j*m+i] = (double)rand();
+            mat[j*m+i] = rand_double();
     return mat;
 }
 
@@ -66,12 +66,12 @@ void matrix_AtoLU(int m, int n, double* a, int lda, double* l, int ldl, double* 
     for (j = 0; j < n; j++)
       u[i+j*ldu] = 0.0;
   for (i = 0; i < m; i++)
-    for (j = i; j < n; j++)
+    for (j = i+1; j < n; j++)
       u[i+j*ldu] = a[i+j*lda];
   for (i = 0; i < m; i++)
-    l[i+i*ldl] = 1.0;
+    u[i+i*ldu] = 1.0;
   for (i = 0; i < m; i++)
-    for (j = 0; j < i; j++)
+    for (j = 0; j <= i; j++)
       l[i+j*ldl] = a[i+j*lda];
 };
 
