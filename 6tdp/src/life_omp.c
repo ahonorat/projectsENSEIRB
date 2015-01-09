@@ -103,6 +103,7 @@ int main(int argc, char* argv[])
 	}
 
 	//calcul du nombre de voisins
+#pragma omp parallel for private(i)
 	for (j = 1; j <= BS; j++) {
 	  for (i = 1; i <= BS; i++) {
 	    ngb( i, j ) =
@@ -114,6 +115,7 @@ int main(int argc, char* argv[])
 
 	//mise à jour de la matrice
 	num_alive = 0;
+#pragma omp parallel for private(i) reduction(+:num_alive)
 	for (j = 1; j <= BS; j++) {
 	  for (i = 1; i <= BS; i++) {
 	    if ( (ngb( i, j ) < 2) || 
