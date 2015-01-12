@@ -15,7 +15,7 @@ void myblas_dtrsm(const MYBLAS_ORDER Order, const MYBLAS_SIDE Side, const MYBLAS
       myblas_dger(CblasColMajor, M-line-1, N, -1.0, &A[(line+1)+line*lda], 1, &B[line], ldb, &B[line+1], ldb);
     }
   }
-  //Case XA = B
+  //Case L(i,k)U(k,k) = A(i,k)
   else{
 
   }
