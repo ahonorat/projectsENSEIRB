@@ -112,6 +112,47 @@ void test_dgemm()
     free(C2);
 }
 
+void test_dtrsm(){
+  int M,N,lda,ldb;
+  M = 3;
+  N = 2;
+  lda = M;
+  ldb = M;
+  double *A;
+  double *B;
+  A = calloc(M*M,sizeof(double));
+  B = calloc(M*N,sizeof(double));
+  if(B == NULL){
+    fprintf(stderr,"ARGH\n");
+  }
+  A[0] = 1;
+  A[1] = 2;
+  A[2] = 7;
+  A[1 + 1*lda] = 1;
+  A[2 + 1*lda] = 3;
+  A[2 + 2*lda] = 1;
+  B[0] = 8;
+  B[1] = 1;
+  B[2] = 1;
+  B[3] = 1;
+  B[4] = 1;
+  B[5] = 1;
+  B[6] = 1;
+  B[7] = 1;
+  B[8] = 1;
+  printf("Testing dtrsm()...\n");
+  fprintf(stderr,"\nA :\n");
+  affiche(M, M, A, lda, stdout);
+  fprintf(stderr,"\nB :\n");
+  affiche(M, N, B, ldb, stdout);
+  myblas_dtrsm(CblasColMajor, CblasLeft, CblasLower, CblasNoTrans, CblasUnit, M, N, 1.0, A, lda, B, ldb);
+  fprintf(stderr,"\nX :\n");
+  affiche(M, N, B, ldb, stdout);
+  fprintf(stderr,"ok\n");
+  free(A);
+  free(B);
+}
+
 void test_blas_tdp5(){
   
   int i;
@@ -151,6 +192,7 @@ int main()
 {
     test_ddot();
     test_dgemm();
+    test_dtrsm();
     test_blas_tdp5();
     return 0;
 }
