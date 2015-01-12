@@ -33,7 +33,7 @@ double* vector_rand(int n)
 double* matrix_alloc(int m, int n)
 {
     double* mat;
-    CHK(mat = malloc(sizeof(double)*n*m));
+    CHK(mat = calloc(n*m,sizeof(double)));
     return mat;
 }
 
