@@ -7,7 +7,6 @@
 #include <lapacke.h>
 #endif
 
-
 lapack_int mylapack_dgetf2(int matrix_layout, int m, int n, double *a, int lda, int *ipiv);
 
 lapack_int mylapack_dgetrf(int matrix_layout, int m, int n, double *a, int lda, int *ipiv, int *info);

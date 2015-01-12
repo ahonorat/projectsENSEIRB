@@ -41,6 +41,7 @@ include_directories("${PROJECT_INCLUDE_DIR}")
 add_library(myblas SHARED ${myblas_files})
 
 add_library(mylapack SHARED ${mylapack_files})
+target_link_libraries(mylapack myblas)
 
 
 add_executable("test-util"
@@ -50,8 +51,8 @@ add_executable("test-util"
 add_executable("test-myblas"
 			src/test/test-myblas.c
 			${util_files})
-target_link_libraries("test-myblas" myblas ${BLAS_LIBRARIES})
-target_link_libraries ("test-myblas" ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries("test-myblas" ${BLAS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries("test-myblas" myblas)
 
 add_executable("test-mylapack"
 			src/test/test-mylapack.c
@@ -59,17 +60,8 @@ add_executable("test-mylapack"
 target_link_libraries("test-mylapack" ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries("test-mylapack" myblas mylapack)
 
-
 add_executable("benchmark"
 			${util_files}
 			${benchmark_files})
 target_link_libraries("benchmark" ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries("benchmark" myblas mylapack)
-
-
-
-
-
-
-
-

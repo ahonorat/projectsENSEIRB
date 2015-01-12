@@ -3,10 +3,7 @@
 #include "../myblas/myblas.h"
 #include "mylapack.h"
 
-#include "../util/util.h"
-
 //TODO : gérer le cas où l'élément diagonal est nul en échangeant la ligne avec une ligne où l'élément de colonne k n'est pas nul
-//TODO : tester le cas où M!=N, normalement c'est bon
 //Column major version
 lapack_int mylapack_dgetf2(int matrix_layout, lapack_int m, lapack_int n, double *a, lapack_int lda, lapack_int *ipiv){
   assert(matrix_layout == LAPACK_COL_MAJOR);

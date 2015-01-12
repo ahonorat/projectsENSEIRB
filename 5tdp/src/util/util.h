@@ -2,6 +2,7 @@
 #define UTIL_H_INCLUDED
 
 #include <stdio.h>
+#include <time.h>
 
 // Allocation de vecteurs et matrices, avec initialisation aléatoire 
 // des valeurs si _rand
