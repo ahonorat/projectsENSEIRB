@@ -31,8 +31,8 @@ MPICC = mpicc
 
 # options de compilation
 CPPFLAGS = -I../include -I. $(DEBUG) $(ZCAT)
-#CFLAGS = -O -Wall
-CFLAGS = -g -Wall
+CFLAGS = -O2 -Wall
+#CFLAGS = -g -Wall
 LDLIBS = -lm -pthread
 
 # application : fichier executable

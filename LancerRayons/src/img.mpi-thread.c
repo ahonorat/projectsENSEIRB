@@ -50,6 +50,7 @@ int end = 0;
 //->Checking if the todo_list is empty, and if so, send an ASK message
 //The problem is that when the todo_list is empty, it will send an ASK message at each iteration. Thus, we use a boolean (asking), to know wether we have already sent an ASK message or not, so that we can avoid sending multiple ones at a time
 int asking = 0;
+int finishing = 0;
 int rank;
 
 static IMG_BASIC  Img;
@@ -91,7 +92,7 @@ thread_compute(void* arg)
 {
   int i,j,k,l;
   sem_wait(&number_of_task);
-  printf("#%d Computation begun\n", rank);
+  //printf("#%d Computation begun\n", rank);
   while(1){
     struct task * task_to_compute;
     // task_todo pop
@@ -116,10 +117,10 @@ thread_compute(void* arg)
     } else { 
       pthread_mutex_unlock(&mutex_todo);
       if(end){
-	printf("#%d Thread exit\n", rank);
+	//printf("#%d Thread exit\n", rank);
 	pthread_exit(NULL);
       }
-      printf("#%d List empty\n", rank);
+      //printf("#%d List empty\n", rank);
       sem_wait(&number_of_task);
     }
   }
@@ -133,35 +134,34 @@ thread_comm(void* arg)
   int size, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  printf("#%d Communication begun\n", rank);  
+  //printf("#%d Communication begun\n", rank);  
   while(1){
     int flag;
     MPI_Status status_p;
     MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status_p);
-    MPI_Request request;    
     if(flag){
       int content;
-      int k,length = 1;	    
+      int k,i,length = 1;
+      int sem;
       switch(status_p.MPI_TAG){
 	//Message asking for another tile. Here, the content of the message is an int corresponding to the original source of the message.
       case ASK :
-	printf("#%d Ask message received\n", rank);
+	//printf("#%d Ask message received\n", rank);
 	//Reception of the message
 	MPI_Recv(&content, 1, MPI_INT, status_p.MPI_SOURCE, status_p.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	//If the message originates from the process himself, that means nobody has tasks left for sharing. The process will thus start the ending process.
 	if(content == rank){
 	  //actually only the tag is important
-	  end = 1;
-	  MPI_Isend(&rank, 0, MPI_INT, (rank+1)%size, END, MPI_COMM_WORLD, &request);
-	  MPI_Request_free(&request);
+	  finishing = 1;
+	  MPI_Send(&rank, 1, MPI_INT, (rank+1)%size, END, MPI_COMM_WORLD);
+	  //printf("#%d End message sent to %d\n", rank,(rank+1)%size);
 	}
 	else{
 	  //If there is no work left, pass the message
 	  pthread_mutex_lock(&mutex_todo);
 	  if(list_empty(&(todo_list.children))){
 	    pthread_mutex_unlock(&mutex_todo);
-	    MPI_Isend(&content, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD, &request);
-	    MPI_Request_free(&request);
+	    MPI_Send(&content, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD);
 	  }
 	  //If there is some work left, pops a tile from the pile and sends it to the asker
 	  else{
@@ -170,7 +170,7 @@ thread_comm(void* arg)
 	    // if length = 1, no problem
 	    if (todo_list.num_children > 2*NB_THREADS){ //there is plenty of tasks
 	      length = NB_THREADS; //so we send as many tasks as threads
-	      printf("#%d There is plenty of tasks\n", rank);
+	      //printf("#%d There is plenty of tasks\n", rank);
 	    }
 	    struct task message[length];
 	    for(k = 0; k < length ; k++){
@@ -180,33 +180,54 @@ thread_comm(void* arg)
 	      message[k] = *task_to_compute;
 	    }
 	    pthread_mutex_unlock(&mutex_todo);
-	    MPI_Isend(&message[0], length, task_type_todo, content, TILE, MPI_COMM_WORLD, &request);
-	    MPI_Request_free(&request);
+	    MPI_Send(&message[0], length, task_type_todo, content, TILE, MPI_COMM_WORLD);
 	  }
 	}
 	break;
 	//Message signifying that nobody has any task left, and that the program his reaching his end
       case END :
-	printf("#%d End message received\n", rank);
+	//printf("#%d End message received\n", rank);
 	//Reception of the messages
 	MPI_Recv(&content, 1, MPI_INT, status_p.MPI_SOURCE, status_p.MPI_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	//If end equals 0, then it's the first end message we receive. That means that the ending message still haven't gone through the whole circle, and that some processes potentially haven't received the message. Thus, the process will pass it to its successor
-	if(end == 0){
-	  MPI_Isend(&rank, 0, MPI_INT, (rank+1)%size, END, MPI_COMM_WORLD, &request);
-	  MPI_Request_free(&request);
+	if(0 != rank){
+	  //printf("#%d End message from %d transmitted\n", rank, content);
+	  MPI_Send(&content, 1, MPI_INT, (rank+1)%size, END, MPI_COMM_WORLD);
 	}
 	end = 1;
 	//Wakes up all the working threads so that they can call pthread_exit()
-	int i;
-	for(i=0;i<NB_THREADS;++i){
+	/* int i; */
+	/* for(i=0;i<NB_THREADS;++i) */
+	sem_getvalue(&number_of_task, &sem);
+	for(k = sem; k<NB_THREADS; k++)
 	  sem_post(&number_of_task);
+	//pthread_exit(NULL);
+	if (rank != 0){
+	  //MPI_Recv(&content, 1, MPI_INT, 0, FINISH, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	} else {
+	  /* for (i = 1; i < size; ++i){ */
+	  MPI_Send(&rank, 1, MPI_INT, (rank+1)%size, FINISH, MPI_COMM_WORLD); // 1 -> i
+	  /* } */
+	  return NULL;
 	}
+	break;
+      case FINISH :
+	MPI_Recv(&content, 1, MPI_INT, status_p.MPI_SOURCE, FINISH, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	//printf("#%d Finish message transmitted\n", rank);
+	MPI_Send(&content, 1, MPI_INT, (rank+1)%size, FINISH, MPI_COMM_WORLD);
+	end = 1;
+	//Wakes up all the working threads so that they can call pthread_exit()
+	/* int i; */
+	/* for(i=0;i<NB_THREADS;++i) */
+	sem_getvalue(&number_of_task, &sem);
+	for(k = sem; k<NB_THREADS; k++)
+	  sem_post(&number_of_task);
 	//pthread_exit(NULL);
 	return NULL;
 	break;
 	//The process received a tile number he asked for. The content of the message is the tile number
       case TILE :
-	printf("#%d Tile message received\n", rank);
+	//printf("#%d Tile message received\n", rank);
 	//Reception of the message
 	MPI_Get_count(&status_p, task_type_todo, &length);
 	struct task message[length];
@@ -218,9 +239,8 @@ thread_comm(void* arg)
 	  *task_to_compute = message[k];
 	  list_add(&todo_list.children, &task_to_compute->list);
 	  ++todo_list.num_children;
-	  printf("#%d Received i: %d, j: %d, ei: %d, ej: %d\n", rank, task_to_compute->i, task_to_compute->j, task_to_compute->end_i, task_to_compute->end_j);
+	  //printf("#%d Received i: %d, j: %d, ei: %d, ej: %d\n", rank, task_to_compute->i, task_to_compute->j, task_to_compute->end_i, task_to_compute->end_j);
 	}
-	int sem;
 	sem_getvalue(&number_of_task, &sem);
 	for(k = sem; k<NB_THREADS; k++)
 	  sem_post(&number_of_task);
@@ -230,15 +250,14 @@ thread_comm(void* arg)
     }
     // The process didn't receive anything, so you check if the process need other tasks
     else{
-      if(!end){
+      if(!finishing){
 	pthread_mutex_lock(&mutex_todo);
 	if(list_empty(&(todo_list.children))){
 	  pthread_mutex_unlock(&mutex_todo);
 	  if(!asking){
-	    printf("#%d Ask message sent\n", rank);
+	    //printf("#%d Ask message sent\n", rank);
 	    //Send an ASK message
-	    MPI_Isend(&rank, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD, &request);
-	    MPI_Request_free(&request);
+	    MPI_Send(&rank, 1, MPI_INT, (rank+1)%size, ASK, MPI_COMM_WORLD);
 	    asking = 1;
 	  }
 	}
@@ -267,7 +286,7 @@ img (const char *FileNameImg)
   int size;
   MPI_Init_thread(NULL,NULL,MPI_THREAD_FUNNELED, &res_init);
   if (res_init != MPI_THREAD_FUNNELED){
-    printf("#%d Exiting process.\n", rank);
+    //printf("#%d Exiting process.\n", rank);
     MPI_Finalize();
     return ;
   }

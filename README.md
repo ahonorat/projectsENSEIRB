@@ -3,11 +3,39 @@ TDP4
 
 ahonorat -- ekeryel-even
 
-Seuls le Makefile et img.mpi-thread.c ont été modifiés.
-Des headers ont été rajouté dans le doccier include/ pour
-la gestion des piles, et pour les define propre à notre code.
+## Infos de base.
 
-Exemple d'exécution depuis src/ 
-```
-make && mpiexec -np 3 lanceur ../scn/exemple/test
-```
+Seuls le Makefile et img.mpi-thread.c ont été modifiés.
+Des headers ont été rajouté dans le dossier include/ pour
+la gestion des piles, et pour les define propre à notre code.
+(et aussi type.h a été modifié pour permettre des longueurs 
+de chemin supérieures à 32 caractères)
+
+Fichiers/dossiers importants
+
+.
+|-- README.md (ici)
+|-- automate.png (et .dot)
+|-- LancerRayons
+  |-- src
+  |-- res (contient 3 graphes)
+  |-- buildPlafrim.sh
+  |-- createGraph.sh
+
+
+## Compilation/exécution
+
+### Sous Plafrim
+
+*4tdp-hk* doit être situé à la racine de votre espace personnel
+afin de gérer correctement les chemins dans les ```qsub```.
+
+Allez dans LancerRayons. Pour la compilation :
+```./buildPlafrim.sh```
+Pour la création automatique de graphe (après compilation) :
+```./createGraph.sh```
+
+### Ailleurs
+
+Exemple de compilation et d'exécution depuis LancerRayons/src/ 
+```make && mpiexec -np 3 lanceur ../scn/exemple/test```

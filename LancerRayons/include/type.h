@@ -24,7 +24,7 @@ typedef int		BOOL;
 typedef unsigned char	BYTE;
 typedef unsigned char   FLAGS;
 
-typedef char		STRING[32];
+typedef char		STRING[200]; //srly ??? 32 char ....
 
 typedef struct lst {
 	void		*Data;
