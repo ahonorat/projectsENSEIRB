@@ -48,6 +48,39 @@ void test_dget_(){
     ASSERT_EQ(A[i],C[i]);
   printf("ok\n");
 
+
+  /*
+  printf("\t mylapack_dgetrf...\n");
+  int m = 4;
+  int n = 4;
+  lapack_int* ipiv2;
+  ipiv2 = malloc(m*sizeof(lapack_int));
+  int j;
+  double *A2 = matrix_rand(MAT_SIZE_M , MAT_SIZE_M);
+  double* L2 = matrix_alloc(MAT_SIZE_M, MAT_SIZE_M);
+  double* U2 = matrix_alloc(MAT_SIZE_M, MAT_SIZE_M);
+  double* C2 = matrix_alloc(MAT_SIZE_M, MAT_SIZE_M);
+  for(i=0;i<m;++i){
+    for(j=0;j<m;++j){
+      A2[i+m*j] = 1+i+m*j < m*n-(1+i+m*j) ? 1+i+m*j : m*n-(1+i+m*j);
+    }
+  }
+  A2[n*m-1] = 1;
+  printf("before :\n");
+  affiche(m,n,A2,m,stdout);
+  mylapack_dgetf2(LAPACK_COL_MAJOR, m, n, A2, m, ipiv2);
+  //mylapack_dgetrf(LAPACK_COL_MAJOR, MAT_SIZE_M, MAT_SIZE_M, );
+  printf("\n after :\n");
+  affiche(m,n,A2,m,stdout);
+  printf("ok\n");
+  free(A2);
+  free(L2);
+  free(U2);
+  free(C2);
+  free(ipiv2);
+*/ 
+
+
   free(A);
   free(L);
   free(U);
