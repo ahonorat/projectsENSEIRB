@@ -5,8 +5,8 @@
 
 //TODO : gérer le cas où l'élément diagonal est nul en échangeant la ligne avec une ligne où l'élément de colonne k n'est pas nul
 //Column major version
-lapack_int mylapack_dgetf2(int matrix_layout, lapack_int m, lapack_int n, double *a, lapack_int lda, lapack_int *ipiv){
-  assert(matrix_layout == LAPACK_COL_MAJOR);
+lapack_int mylapack_dgetf2(int matrix_order, lapack_int m, lapack_int n, double* a, lapack_int lda, lapack_int* ipiv){
+  assert(matrix_order == LAPACK_COL_MAJOR);
   int k, min_dim;
   min_dim = (m < n)?m:n;
   for (k = 0; k < m ; ++k)
