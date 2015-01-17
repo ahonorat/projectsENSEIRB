@@ -58,20 +58,20 @@ void tab_nullify(double* tab, int N)
 
 void matrix_AtoLU(int m, int n, double* a, int lda, double* l, int ldl, double* u, int ldu)
 {
-  int i,j;
+  int i,j, min = (m<n)?m:n;
   for (i = 0; i < m; i++)
-    for (j = 0; j < m; j++)
+    for (j = 0; j < min; j++)
       l[i+j*ldl] = 0.0;
-  for (i = 0; i < m; i++)
+  for (i = 0; i < min; i++)
     for (j = 0; j < n; j++)
       u[i+j*ldu] = 0.0;
-  for (i = 0; i < m; i++)
+  for (i = 0; i < min; i++)
     for (j = i+1; j < n; j++)
       u[i+j*ldu] = a[i+j*lda];
-  for (i = 0; i < m; i++)
+  for (i = 0; i < min; i++)
     u[i+i*ldu] = 1.0;
   for (i = 0; i < m; i++)
-    for (j = 0; j <= i; j++)
+    for (j = 0; (j <= i) && (j < min); j++)
       l[i+j*ldl] = a[i+j*lda];
 };
 

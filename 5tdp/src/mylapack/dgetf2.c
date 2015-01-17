@@ -11,7 +11,7 @@ lapack_int mylapack_dgetf2(int matrix_order, lapack_int m, lapack_int n, double*
   min_dim = (m < n)?m:n;
   for (k = 0; k < m ; ++k)
     ipiv[k] = k;
-  for(k=0; k < (min_dim - 1); ++k){
+  for(k=0; k < min_dim; ++k){
     myblas_dscal(n-1-k, 1.0 / a[k+k*lda], a+k+(k+1)*lda, lda);
     myblas_dger(CblasColMajor, m-1-k , n-1-k, -1.0, a+(k+1)+k*lda, 1, a+k+(k+1)*lda, lda, a+(k+1)+(k+1)*lda, lda);
   }
