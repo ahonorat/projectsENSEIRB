@@ -67,17 +67,6 @@ void myblas_dtrsm(const MYBLAS_ORDER Order, const MYBLAS_SIDE Side,
                  const MYBLAS_DIAG Diag, const int M, const int N,
                  const double alpha, const double *A, const int lda,
                  double *B, const int ldb);
-void p_myblas_dtrsm(const MYBLAS_ORDER Order, const MYBLAS_SIDE Side,
-                 const MYBLAS_UPLO Uplo, const MYBLAS_TRANSPOSE TransA,
-                 const MYBLAS_DIAG Diag, const int M, const int N,
-                 const double alpha, const double *A, const int lda,
-                 double *B, const int ldb);
-void b_p_myblas_dtrsm(const MYBLAS_ORDER Order, const MYBLAS_SIDE Side,
-                 const MYBLAS_UPLO Uplo, const MYBLAS_TRANSPOSE TransA,
-                 const MYBLAS_DIAG Diag, const int M, const int N,
-                 const double alpha, const double *A, const int lda,
-		      double *B, const int ldb, int bsize);
-
 
 
 #endif
