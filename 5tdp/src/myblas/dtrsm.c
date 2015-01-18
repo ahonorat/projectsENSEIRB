@@ -32,7 +32,7 @@ void myblas_dtrsm(const MYBLAS_ORDER Order, const MYBLAS_SIDE Side,
   }
   //In LU, case L(i,k)U(k,k) = A(i,k)
   else if (Side == CblasRight && Uplo == CblasUpper && Diag == CblasUnit){
-    int col; 
+    int col;
     for(col = 0; col < (N - 1); ++col){
       myblas_dger(CblasColMajor, M, N-1-col, -1.0, B+col*ldb, 1, A+(col+1)*lda+col, lda, B+(col+1)*ldb, 1);
     }
