@@ -114,7 +114,43 @@ void test_dgemm()
   free(C2);
 }
 
-void test_dtrsm(){
+void test_blas_tdp5()
+{
+
+  int i;
+  double *X = matrix_rand(MAT_SIZE_M , 1);
+  double *Y = matrix_rand(1, MAT_SIZE_N);
+  double *A = matrix_rand(MAT_SIZE_M,MAT_SIZE_N);
+  double *X_test = matrix_alloc(MAT_SIZE_M,1);
+  double *A_test = matrix_alloc(MAT_SIZE_M,MAT_SIZE_N);
+  memcpy(X_test, X, MAT_SIZE_M*sizeof(double));
+  memcpy(A_test, A, MAT_SIZE_M*MAT_SIZE_N*sizeof(double));
+
+  printf("Testing dscal:...\t");  
+  myblas_dscal(MAT_SIZE_M, 2.0, X, 1);
+  cblas_dscal(MAT_SIZE_M, 2.0, X_test, 1);
+  for(i=0;i<MAT_SIZE_M;i++)
+    ASSERT_EQ(X[i],X_test[i]);
+  printf("ok\n");
+
+  printf("Testing dger:...\t");
+  myblas_dger(CblasColMajor, MAT_SIZE_M, MAT_SIZE_N, 1.0, X, 1, Y, 1, A, MAT_SIZE_M);
+  cblas_dger(CblasColMajor, MAT_SIZE_M, MAT_SIZE_N, 1.0, X, 1, Y, 1, A_test, MAT_SIZE_M);
+  for(i=0;i<MAT_SIZE_M*MAT_SIZE_N;i++)
+    ASSERT_EQ(A[i],A_test[i]);
+  printf("ok\n");
+
+  free(X);
+  free(Y);
+  free(A);
+  free(X_test);
+  free(A_test);
+
+}
+
+
+void test_dtrsm()
+{
   int M,lda,ldb;
   int i;
   M = MAT_SIZE_M;
@@ -167,40 +203,6 @@ void test_dtrsm(){
   free(B3); free(B3_test);
       
 }
-
-void test_blas_tdp5(){
-
-  int i;
-  double *X = matrix_rand(MAT_SIZE_M , 1);
-  double *Y = matrix_rand(1, MAT_SIZE_N);
-  double *A = matrix_rand(MAT_SIZE_M,MAT_SIZE_N);
-  double *X_test = matrix_alloc(MAT_SIZE_M,1);
-  double *A_test = matrix_alloc(MAT_SIZE_M,MAT_SIZE_N);
-  memcpy(X_test, X, MAT_SIZE_M*sizeof(double));
-  memcpy(A_test, A, MAT_SIZE_M*MAT_SIZE_N*sizeof(double));
-
-  printf("Testing dscal:...\t");  
-  myblas_dscal(MAT_SIZE_M, 2.0, X, 1);
-  cblas_dscal(MAT_SIZE_M, 2.0, X_test, 1);
-  for(i=0;i<MAT_SIZE_M;i++)
-    ASSERT_EQ(X[i],X_test[i]);
-  printf("ok\n");
-
-  printf("Testing dger:...\t");
-  myblas_dger(CblasColMajor, MAT_SIZE_M, MAT_SIZE_N, 1.0, X, 1, Y, 1, A, MAT_SIZE_M);
-  cblas_dger(CblasColMajor, MAT_SIZE_M, MAT_SIZE_N, 1.0, X, 1, Y, 1, A_test, MAT_SIZE_M);
-  for(i=0;i<MAT_SIZE_M*MAT_SIZE_N;i++)
-    ASSERT_EQ(A[i],A_test[i]);
-  printf("ok\n");
-
-  free(X);
-  free(Y);
-  free(A);
-  free(X_test);
-  free(A_test);
-
-}
-
 
 int main()
 {
