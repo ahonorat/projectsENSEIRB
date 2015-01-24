@@ -81,8 +81,33 @@ void test_dgetrf(){
   free(U);
 }
 
+void test_dgesv(){
+  int m = MAT_SIZE_M;
+  int n = MAT_SIZE_N;
+  double *A = matrix_rand(m,m);
+  double *A_test = matrix_alloc(m,m);
+  double *B = matrix_rand(m,n);
+  double *B_test = matrix_alloc(m,n);
+  double *C = matrix_alloc(m,n);
+  int ipiv[m];
+  int i;
+  memcpy(A_test, A, m*m*sizeof(double));
+  memcpy(B_test, B, m*n*sizeof(double));
+  printf("Testing mylapack_dgesv...\t");
+  mylapack_dgesv(LAPACK_COL_MAJOR, m, n, A, m, ipiv, B, m);
+  cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, m, 1.0, A_test, m, B, m, 0.0, C, m);
+  for(i = 0; i < m*n; ++i){
+    ASSERT_EQ(C[i], B_test[i]);
+  }  
+  printf("ok\n");
+  free(A); free(A_test);
+  free(B); free(B_test);
+}
+
+
 int main(){
   test_dgetf2();
   test_dgetrf();
+  test_dgesv();
   return 0;
 }

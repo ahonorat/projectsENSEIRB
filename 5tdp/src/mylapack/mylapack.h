@@ -16,10 +16,10 @@ lapack_int b_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, doubl
 
 lapack_int mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, double* a, lapack_int lda, lapack_int* ipiv);
 
-lapack_int mylapack_dgesv(int matrix_layout, int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb, int *info);
+lapack_int mylapack_dgesv(int matrix_order, int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb);
 
-lapack_int p_mylapack_dgetrf(int matrix_layout, int m, int n, double *a, int lda, int *ipiv, int *info);
+lapack_int p_mylapack_dgetrf(int matrix_order, int m, int n, double *a, int lda, int *ipiv);
 
-lapack_int p_mylapack_dgesv(int matrix_layout, int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb, int *info);
+lapack_int p_mylapack_dgesv(int matrix_order, int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb);
 
 #endif
