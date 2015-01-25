@@ -54,13 +54,12 @@ lapack_int mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, double*
   return b_mylapack_dgetrf(LAPACK_COL_MAJOR, m, n, a, lda, ipiv, BLOCK_SIZE);
 }
 
-lapack_int p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, double *a, lapack_int lda, lapack_int *ipiv){
+lapack_int b_p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, double *a, lapack_int lda, lapack_int *ipiv, int bsize){
   assert(matrix_order == LAPACK_COL_MAJOR);
   //nb_block_m : number of block by column
   //nb_block_n : number of block by row
   //current_bsize_m : number of rows of the currently processed bloc
   //current_bsize_n : number of columns of the currently processed bloc
-  int bsize = BLOCK_SIZE;
   int nb_block_m,nb_block_n,min_nb_block,current_bsize_m,current_bsize_n,k,i,j;
   nb_block_m = m%bsize == 0 ? m/bsize : (m/bsize)+1;
   nb_block_n = n%bsize == 0 ? n/bsize : (n/bsize)+1;
@@ -95,4 +94,8 @@ lapack_int p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, doubl
   for(i=0; i<m; ++i)
       ipiv[i] = i;
   return EXIT_SUCCESS;
+}
+
+lapack_int p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, double *a, lapack_int lda, lapack_int *ipiv){
+  return b_p_mylapack_dgetrf(LAPACK_COL_MAJOR, m, n, a, lda, ipiv, BLOCK_SIZE);
 }
