@@ -20,11 +20,10 @@ lapack_int p_mylapack_dgesv(int matrix_order, lapack_int n, lapack_int nrhs, dou
   int size, rank;
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  double *a_local;
   int nb_cols = nb_col(size, BLOCK_SIZE, n, rank);
-  a_local = matrix_alloc(n, nb_cols*BLOCK_SIZE);
+  double *a_local = matrix_alloc(n, nb_cols*BLOCK_SIZE);
   split_matrix(n, n, a, a_local, BLOCK_SIZE, SCATTER);
-  p_mylapack_dgetrf(matrix_order, n, n, a, lda, ipiv);
+  p_mylapack_dgetrf(matrix_order, n, n, a_local, lda, ipiv);
   split_matrix(n, n, a, a_local, BLOCK_SIZE, GATHER);
   free(a_local);
   myblas_dtrsm(CblasColMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit, n, nrhs, 1.0, a, lda, b, ldb);

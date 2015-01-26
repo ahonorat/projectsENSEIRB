@@ -20,11 +20,11 @@
 
 #define MIN(a,b) (a<b)?a:b
 
-//assert Erreur relative < 0.000001
-#define ASSERT_EQ(a,b) if(ABS(((a)-(b))/(a))>0.000001){printf(#a "!=" #b "(%e!=%e) (diff rel = %e)\n",a,b,ABS(((a)-(b))/(a))); assert(0);}
+//assert Erreur relative < 0.0001
+#define ASSERT_EQ(a,b) if(ABS(((a)-(b))/(a))>0.0001){printf(#a "!=" #b "(%e!=%e) (diff rel = %e)\n",a,b,ABS(((a)-(b))/(a))); assert(0);}
 
-#define MAT_SIZE_M 40
-#define MAT_SIZE_N 50
+#define MAT_SIZE_M 1024
+#define MAT_SIZE_N 512
 #define MAT_SIZE_K 10
 
 void test_dgetf2(){
@@ -59,7 +59,7 @@ void test_dgetf2(){
 void test_dgetrf(){
   int m = MAT_SIZE_M;
   int n = MAT_SIZE_N;
-  int bsize = 30;
+  int bsize = BLOCK_SIZE;
   int min_mn = MIN(m,n);
   double *A = matrix_rand(m,n);
   double *C = matrix_alloc(m,n);
@@ -122,7 +122,7 @@ void test_p_dgetrf(){
     L = matrix_alloc(m,min_mn);
     U = matrix_alloc(min_mn,n);
     memcpy(C, A, m*n*sizeof(double));
-    printf("Testing mylapack_dgetrf...\t");
+    printf("Testing p_mylapack_dgetrf...\t");
   }
   double *A_local;
   int nb_cols = nb_col(size, BLOCK_SIZE, n, rank);

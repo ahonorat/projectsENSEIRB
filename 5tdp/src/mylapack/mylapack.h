@@ -7,7 +7,7 @@
 #include <lapacke.h>
 #endif
 
-#define BLOCK_SIZE 10
+#define BLOCK_SIZE 17
 
 //#define min(x,a,b) do {x = a<b ? a : b;}  while (0)
 
