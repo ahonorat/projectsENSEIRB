@@ -7,6 +7,8 @@
 #include <lapacke.h>
 #endif
 
+#define BLOCK_SIZE 10
+
 //#define min(x,a,b) do {x = a<b ? a : b;}  while (0)
 
 lapack_int mylapack_dgetf2(int matrix_order, lapack_int m, lapack_int n, double* a, lapack_int lda, lapack_int* ipiv);

@@ -8,8 +8,8 @@
 #include "mylapack/mylapack.h"
 
 #define N_ITER 4
-#define MAT_SIZE 2048
-#define BENCH_B_MAX 1024
+#define MAT_SIZE 1024
+#define BENCH_B_MAX 512
 #define BENCH_B_MIN 64
 
 // flops for dgetrf
@@ -36,6 +36,7 @@ int main(){
     fprintf(logfile, "#bsize\tMFlop/s\n");
     //On incrémente i de 25%
     for(i=BENCH_B_MIN; i <= BENCH_B_MAX; i+=i/4){
+      printf("Bsize: %ld\n", i);
       for (j = 0; j < N_ITER; ++j){
 	A[j] = matrix_rand(MAT_SIZE, MAT_SIZE);
       }
@@ -72,6 +73,7 @@ int main(){
       perf_t start,stop;
       double *A_local[N_ITER];
       if (rank == 0){
+	printf("Bsize: %ld\n", i);
 	perf(&start);
       }
       int nb_cols = nb_col(size, i, MAT_SIZE, rank);
