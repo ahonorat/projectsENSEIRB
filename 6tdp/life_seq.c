@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
     board = malloc( ldboard * ldboard * sizeof(int) );
     nbngb = malloc( ldnbngb * ldnbngb * sizeof(int) );
 
-    num_alive = generate_initial_board( &(cell(1, 1)), ldboard );
+    num_alive = generate_initial_board( BS, &(cell(1, 1)), ldboard );
 
     //output_board( BS, &(cell(1, 1)), ldboard, 0 );
 
@@ -112,20 +112,20 @@ int main(int argc, char* argv[])
 
 	//mise à jour de la matrice
 	num_alive = 0;
-	for (j = 1; j <= BS; j++) {
-	  for (i = 1; i <= BS; i++) {
-	    if ( (ngb( i, j ) < 2) || 
-		 (ngb( i, j ) > 3) ) {
-	      cell(i, j) = 0;
+	for (i = 1; i <= BS; i++) {
+	    for (j = 1; j <= BS; j++) {
+		if ( (ngb( i, j ) < 2) || 
+		     (ngb( i, j ) > 3) ) {
+		    cell(i, j) = 0;
+		}
+		else {
+		    if ((ngb( i, j )) == 3)
+			cell(i, j) = 1;
+		}
+		if (cell(i, j) == 1) {
+		    num_alive ++;
+		}
 	    }
-	    else {
-	      if ((ngb( i, j )) == 3)
-		cell(i, j) = 1;
-	    }
-	    if (cell(i, j) == 1) {
-	      num_alive ++;
-	    }
-	  }
 	}
 
 	//output_board( BS, &(cell(1, 1)), ldboard, loop);
