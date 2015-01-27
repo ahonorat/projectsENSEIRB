@@ -10,7 +10,7 @@
 #define N_ITER 4
 #define MAT_SIZE 512
 #define BENCH_B_MAX 512
-#define BENCH_B_MIN 64
+#define BENCH_B_MIN 16
 
 // flops for dgetrf
 long flop(int i){
@@ -28,6 +28,7 @@ int main(){
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   double * A[N_ITER];  
+  int ipiv[MAT_SIZE];
   filename[0] = '\0';
   strcat(filename, "data_dgetrf");
   if (size == 1) {
@@ -40,7 +41,6 @@ int main(){
       for (j = 0; j < N_ITER; ++j){
 	A[j] = matrix_rand(MAT_SIZE, MAT_SIZE);
       }
-      int ipiv[MAT_SIZE];
       perf_t start,stop;
       perf(&start);
       // le calcul est lancé plusieurs fois afin d'obtenir
@@ -58,37 +58,31 @@ int main(){
       }
     }
     fclose(logfile);
-  } else {
+  } else { // idem pour plusieurs procs
     FILE* logfile;
     if (rank == 0){
       sprintf(filename+strlen(filename), "_%d", size);
       logfile = fopen(filename, "w+");
       fprintf(logfile, "#bsize\tMFlop/s\n");
-	for (j = 0; j < N_ITER; ++j){
-	  A[j] = matrix_rand(MAT_SIZE, MAT_SIZE);
-	}
     }
     for(i=BENCH_B_MIN; i <= BENCH_B_MAX; i+=i/4){
-      int ipiv[MAT_SIZE];
       perf_t start,stop;
       double *A_local[N_ITER];
+      int nb_cols = nb_col(size, i, MAT_SIZE, rank);
+      for (j = 0; j < N_ITER; ++j){
+	A_local[j] = matrix_rand(MAT_SIZE, nb_cols*i);
+      }
       if (rank == 0){
 	printf("Bsize: %d\n", i);
 	perf(&start);
       }
-      int nb_cols = nb_col(size, i, MAT_SIZE, rank);
       for (j = 0; j < N_ITER; ++j){
-	A_local[j] = matrix_alloc(MAT_SIZE, nb_cols*i);
-	split_matrix(MAT_SIZE, MAT_SIZE, A[j], A_local[j], i, SCATTER);
-      }
-      for(j=0;j<N_ITER;++j){
 	b_p_mylapack_dgetrf(LAPACK_COL_MAJOR, MAT_SIZE, MAT_SIZE, A_local[j], MAT_SIZE, ipiv, i);
       }
       if (rank == 0){
 	perf(&stop);
 	perf_diff(&start, &stop);
 	double mflops = perf_mflops(&stop, flop(i)*N_ITER);
-	//Ecriture du resultat dans le logfile et dans la console
 	fprintf(logfile,"%d\t%f\n",i,mflops);
       }
       for (j = 0; j < N_ITER; ++j){
@@ -96,9 +90,6 @@ int main(){
       }
     }
     if (rank == 0){
-      for (j = 0; j < N_ITER; ++j){
-	free(A[j]);
-      }
       fclose(logfile); 
       printf("Benchmark > %s\n",filename);
     }

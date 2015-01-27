@@ -68,13 +68,16 @@ lapack_int b_p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, dou
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Datatype blocktype;
-  MPI_Datatype blocktype2;  
+  MPI_Datatype blocktype2; // resized in case of several are sent in the same time 
   MPI_Datatype blocktype3; // end of a column, maybe shorter
+  MPI_Datatype blocktype4; // for the dgetf block
   MPI_Type_vector(bsize, bsize, m, MPI_DOUBLE, &blocktype);
   //  MPI_Type_create_resized(blocktype2, 0, bsize*sizeof(double), &blocktype); 
   MPI_Type_commit(&blocktype);
   MPI_Type_vector(bsize, m%bsize, m, MPI_DOUBLE, &blocktype3);
   MPI_Type_commit(&blocktype3);
+  MPI_Type_contiguous(bsize*bsize, MPI_DOUBLE, &blocktype4);
+  MPI_Type_commit(&blocktype4);
   int nb_block_m,nb_block_n,min_nb_block,current_bsize_m,current_bsize_n;
   int k = 0,i,j,p,q;
   nb_block_m = m%bsize == 0 ? m/bsize : (m/bsize)+1;
@@ -91,25 +94,22 @@ lapack_int b_p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, dou
       for(j = 0; j<current_bsize_n; ++j)
 	dgetf_local[i+j*bsize] = a[(nb_loc - 1)*bsize + (nb_loc - 1)*bsize*lda + i + j*lda];
   }
-  if (current_bsize_m != bsize)
-    MPI_Bcast(dgetf_local, 1, blocktype3, 0, MPI_COMM_WORLD);
-  else
-    MPI_Bcast(dgetf_local, 1, blocktype, 0, MPI_COMM_WORLD);
+  MPI_Bcast(dgetf_local, 1, blocktype4, 0, MPI_COMM_WORLD);
   for(k=0; k < (min_nb_block - 1); ){
     //    current_bsize_n = bsize;
     for(i=k+1; i<nb_block_m; ++i){
       current_bsize_m = MIN(m-(i*bsize),bsize);
       //DTRSM : Solve L(i,k)U(k,k)=A(i,k)
       if (nb_loc){
-	myblas_dtrsm(matrix_order, CblasRight, CblasUpper, CblasNoTrans, CblasUnit, current_bsize_m, current_bsize_n, 1.0, &a[(nb_loc - 1)*bsize + (nb_loc - 1)*bsize*lda], lda, &a[i*bsize + (nb_loc - 1)*bsize*lda], lda);
+	myblas_dtrsm(matrix_order, CblasRight, CblasUpper, CblasNoTrans, CblasUnit, current_bsize_m, current_bsize_n, 1.0, dgetf_local, bsize, &a[i*bsize + (nb_loc - 1)*bsize*lda], lda);
 	for(p = 0; p<current_bsize_m; ++p)
 	  for(q = 0; q<current_bsize_n; ++q)
 	    lastc_local[i+p+q*m] = a[i*bsize + (nb_loc - 1)*bsize*lda + p + q*lda];
       }
       if (current_bsize_m != bsize)
-	MPI_Bcast(lastc_local+i, 1, blocktype3, dest(k,size), MPI_COMM_WORLD);
+	MPI_Bcast(lastc_local+i*bsize, 1, blocktype3, dest(k,size), MPI_COMM_WORLD);
       else
-	MPI_Bcast(lastc_local+i, 1, blocktype, dest(k,size), MPI_COMM_WORLD);
+	MPI_Bcast(lastc_local+i*bsize, 1, blocktype, dest(k,size), MPI_COMM_WORLD);
     }
     //    current_bsize_m = bsize;
     current_bsize_m = MIN(m-(k*bsize),bsize);
@@ -141,10 +141,7 @@ lapack_int b_p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, dou
 	for(j = 0; j<current_bsize_n; ++j)
 	  dgetf_local[i+j*bsize] = a[(nb_loc - 1)*bsize + (nb_loc - 1)*bsize*lda + i + j*lda];
     }
-    if (current_bsize_m != bsize)
-      MPI_Bcast(dgetf_local, 1, blocktype3, dest(k,size), MPI_COMM_WORLD);
-    else
-      MPI_Bcast(dgetf_local, 1, blocktype, dest(k,size), MPI_COMM_WORLD);
+    MPI_Bcast(dgetf_local, 1, blocktype4, dest(k,size), MPI_COMM_WORLD);
   }
   for(i=0; i<m; ++i)
       ipiv[i] = i;
