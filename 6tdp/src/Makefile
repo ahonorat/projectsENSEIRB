@@ -13,7 +13,6 @@ compile_seq:
 	$(CC) $(CFLAGS) $(SEQ).c -o $(SEQ)
 
 clean: clean_seq clean_omp
-	rm $(SEQ) $(OMP)
 
 clean_seq:
 	rm $(SEQ)
