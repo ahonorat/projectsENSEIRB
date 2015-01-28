@@ -1,7 +1,7 @@
-# TDP 1
+# TDP 5
 
-La compilation du projet requiert *cmake*, une bibliothèque de threads, et une \
-de blas.
+La compilation du projet requiert *cmake*, une bibliothèque de threads, une \
+de blas, une de lapack (ou mkl), une de MPI.
 La création des graphes requiert *gnuplot*.
 
 ## Compilation
@@ -21,5 +21,6 @@ La création des graphes requiert *gnuplot*.
 ## Création des graphes
 
 Après avoir exécuté le binaire *bin/benchmark*, des fichiers de performance ont \
-été créés dans le répertoire *bin*.
-Vous pouvez alors créer les graphes présentés dans le rapport en vous placant dans res et en executant le script ```generateGraph.sh```.
+été créés dans le répertoire *bin* (à condition que vous soyez dans bin/).
+Vous pouvez alors créer les graphes présentés dans le rapport en exécutant \
+le script ```generateGraph.sh``` (qui se base sur l'existence des data dans bin).

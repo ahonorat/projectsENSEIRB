@@ -1,13 +1,14 @@
 #PBS -N test
 # temps en heure:minutes:secondes
-#PBS -l walltime=03:00:00
+#PBS -l walltime=00:03:00
 # nombre de noeuds et de coeurs
 #PBS -l nodes=1:ppn=8
 #PBS -l naccesspolicy=singlejob
-module load compiler/intel
+module load compiler/intel mpi/openmpi/current
 # répertoire de travail dans lequel on soumet le batch
-cd Documents/TDP/TDP1/bin/
-export MKL_NUM_THREADS=8
-export MYLIB_NUM_THREADS=8
+cd tdp5-hk/bin
+export MKL_NUM_THREADS=4
+export MYLIB_NUM_THREADS=4
 ###./test-myblas
-./benchmark
+###./test-mylapack
+mpiexec -np 4 ./benchmark
