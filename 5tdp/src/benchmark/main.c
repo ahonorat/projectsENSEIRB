@@ -9,7 +9,7 @@
 
 #define N_ITER 4
 #define MAT_SIZE 512
-#define BENCH_B_MAX 512
+#define BENCH_B_MAX 430
 #define BENCH_B_MIN 16
 
 // flops for dgetrf

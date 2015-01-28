@@ -159,13 +159,13 @@ void test_p_dgesv(){
   memcpy(A_test, A, m*m*sizeof(double));
   memcpy(B_test, B, m*n*sizeof(double));
   if (rank == 0)
-    printf("Testing p_mylapack_dgesv...\t");
+    printf("Testing p_mylapack_dgesv...\t");  
   p_mylapack_dgesv(LAPACK_COL_MAJOR, m, n, A, m, ipiv, B, m);
   if (rank == 0){
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, m, n, m, 1.0, A_test, m, B, m, 0.0, C, m);
     for(i = 0; i < m*n; ++i){
       ASSERT_EQ(C[i], B_test[i]);
-    }  
+    }
     printf("ok\n");
   }
   free(A); free(A_test);

@@ -84,18 +84,21 @@ lapack_int b_p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, dou
   nb_block_n = n%bsize == 0 ? n/bsize : (n/bsize)+1;
   min_nb_block = MIN(nb_block_m, nb_block_n);
   //Normally the diagonal block is always of size bsize*bsize, except in the last iteration of the very particular case where both dimensions of the original matrix aren't dividable by bsize
-  current_bsize_m = MIN(m-(k*bsize),bsize);
-  current_bsize_n = MIN(n-(k*bsize),bsize);
-  nb_loc = nb_local(k, rank, size);
-  //LU(A(k,k))
-  if (nb_loc){
-    mylapack_dgetf2(matrix_order, current_bsize_m, current_bsize_n, &a[(nb_loc - 1)*bsize + (nb_loc - 1)*bsize*lda], lda, &ipiv[(nb_loc - 1)*bsize]);
-    for(i = 0; i<current_bsize_m; ++i)
-      for(j = 0; j<current_bsize_n; ++j)
-	dgetf_local[i+j*bsize] = a[(nb_loc - 1)*bsize + (nb_loc - 1)*bsize*lda + i + j*lda];
-  }
   MPI_Bcast(dgetf_local, 1, blocktype4, 0, MPI_COMM_WORLD);
-  for(k=0; k < (min_nb_block - 1); ){
+  for(k=0; k < min_nb_block ; ++k){
+    nb_loc = nb_local(k, rank, size);
+    current_bsize_m = MIN(m-(k*bsize),bsize);
+    current_bsize_n = MIN(n-(k*bsize),bsize);
+   
+    //LU(A(k,k))
+    if (nb_loc){
+      mylapack_dgetf2(matrix_order, current_bsize_m, current_bsize_n, &a[k*bsize + (nb_loc - 1)*bsize*lda], lda, &ipiv[k*bsize]);
+      for(i = 0; i<current_bsize_m; ++i)
+	for(j = 0; j<current_bsize_n; ++j)
+	  dgetf_local[i+j*bsize] = a[k*bsize + (nb_loc - 1)*bsize*lda + i + j*lda];
+    }
+    MPI_Bcast(dgetf_local, 1, blocktype4, dest(k,size), MPI_COMM_WORLD);
+
     //    current_bsize_n = bsize;
     for(i=k+1; i<nb_block_m; ++i){
       current_bsize_m = MIN(m-(i*bsize),bsize);
@@ -104,7 +107,7 @@ lapack_int b_p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, dou
 	myblas_dtrsm(matrix_order, CblasRight, CblasUpper, CblasNoTrans, CblasUnit, current_bsize_m, current_bsize_n, 1.0, dgetf_local, bsize, &a[i*bsize + (nb_loc - 1)*bsize*lda], lda);
 	for(p = 0; p<current_bsize_m; ++p)
 	  for(q = 0; q<current_bsize_n; ++q)
-	    lastc_local[i+p+q*m] = a[i*bsize + (nb_loc - 1)*bsize*lda + p + q*lda];
+	    lastc_local[i*bsize + p + q*m] = a[i*bsize + (nb_loc - 1)*bsize*lda + p + q*lda];
       }
       if (current_bsize_m != bsize)
 	MPI_Bcast(lastc_local+i*bsize, 1, blocktype3, dest(k,size), MPI_COMM_WORLD);
@@ -120,7 +123,7 @@ lapack_int b_p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, dou
       if (nb_lcl)
   	myblas_dtrsm(matrix_order, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit, current_bsize_m, current_bsize_n, 1.0, dgetf_local, bsize, &a[k*bsize + (nb_lcl - 1)*bsize*lda], lda);
     }
-    for(i=k+1;i<nb_block_m; ++i){
+    for(i=k+1; i<nb_block_m; ++i){
       current_bsize_m = MIN(m-(i*bsize),bsize);
       for(j=k+1; j<nb_block_n; ++j){
 	current_bsize_n = MIN(n-(j*bsize),bsize);
@@ -130,18 +133,6 @@ lapack_int b_p_mylapack_dgetrf(int matrix_order, lapack_int m, lapack_int n, dou
 	  myblas_dgemm_jik(matrix_order, CblasNoTrans, CblasNoTrans, current_bsize_m, current_bsize_n, bsize, -1.0, &lastc_local[i*bsize], m, &a[k*bsize + (nb_lcl - 1)*bsize*lda], lda, 1.0, &a[i*bsize + (nb_lcl - 1)*bsize*lda], lda);
       }
     }
-    ++k;
-    nb_loc = nb_local(k, rank, size);
-    current_bsize_m = MIN(m-(k*bsize),bsize);
-    current_bsize_n = MIN(n-(k*bsize),bsize);
-    //LU(A(k,k))
-    if (nb_loc){
-      mylapack_dgetf2(matrix_order, current_bsize_m, current_bsize_n, &a[(nb_loc - 1)*bsize + (nb_loc - 1)*bsize*lda], lda, &ipiv[(nb_loc - 1)*bsize]);
-      for(i = 0; i<current_bsize_m; ++i)
-	for(j = 0; j<current_bsize_n; ++j)
-	  dgetf_local[i+j*bsize] = a[(nb_loc - 1)*bsize + (nb_loc - 1)*bsize*lda + i + j*lda];
-    }
-    MPI_Bcast(dgetf_local, 1, blocktype4, dest(k,size), MPI_COMM_WORLD);
   }
   for(i=0; i<m; ++i)
       ipiv[i] = i;
