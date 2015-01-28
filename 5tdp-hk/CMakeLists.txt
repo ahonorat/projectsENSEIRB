@@ -42,10 +42,12 @@ set(PROJECT_INCLUDE_DIR "src")
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${MPI_INCLUDE_PATH}")
 
-add_library(myblas SHARED ${myblas_files} ${util_files})
+#add_library(myblas SHARED ${myblas_files} ${util_files})
 
-add_library(mylapack SHARED ${mylapack_files} ${util_files})
-target_link_libraries(mylapack myblas)
+#add_library(mylapack SHARED ${mylapack_files} ${util_files})
+#target_link_libraries(mylapack myblas)
+
+add_library(mymkl SHARED ${myblas_files} ${mylapack_files} ${util_files})
 
 
 add_executable("test-util"
@@ -57,16 +59,16 @@ add_executable("test-myblas"
 			src/test/test-myblas.c
 			${util_files})
 target_link_libraries("test-myblas" ${BLAS_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MPI_LIBRARIES})
-target_link_libraries("test-myblas" myblas)
+target_link_libraries("test-myblas" mymkl)
 
 add_executable("test-mylapack"
 			src/test/test-mylapack.c
 			${util_files})
 target_link_libraries("test-mylapack" ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MPI_LIBRARIES})
-target_link_libraries("test-mylapack" myblas mylapack)
+target_link_libraries("test-mylapack" mymkl)
 
 add_executable("benchmark"
 			${benchmark_files}
 			${util_files})
 target_link_libraries("benchmark" ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${MPI_LIBRARIES})
-target_link_libraries("benchmark" myblas mylapack)
+target_link_libraries("benchmark" mymkl)

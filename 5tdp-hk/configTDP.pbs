@@ -1,4 +1,4 @@
-#PBS -N test
+#PBS -N tdp5-hk
 # temps en heure:minutes:secondes
 #PBS -l walltime=00:03:00
 # nombre de noeuds et de coeurs
@@ -6,9 +6,12 @@
 #PBS -l naccesspolicy=singlejob
 module load compiler/intel mpi/openmpi/current
 # répertoire de travail dans lequel on soumet le batch
-cd tdp5-hk/bin
+cd 5tdp-hk/bin
 export MKL_NUM_THREADS=4
 export MYLIB_NUM_THREADS=4
 ###./test-myblas
 ###./test-mylapack
-mpiexec -np 4 ./benchmark
+### ./benchmark
+### mpiexec -np 2 ./benchmark
+### mpiexec -np 4 ./benchmark
+mpiexec -np 8 ./benchmark

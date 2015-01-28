@@ -53,6 +53,7 @@ int main(){
       }
     }
     fclose(logfile);
+    printf("Benchmark > %s\n",filename);
   } else { // idem pour plusieurs procs
     FILE* logfile;
     if (rank == 0){

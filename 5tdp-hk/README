@@ -15,8 +15,9 @@ La création des graphes requiert *gnuplot*.
 
 ### Sur plafrim, avec mkl
 
-1) Exécutez le script ```buildPlafrim.sh```
-2) Exécutez les binaire grâce au fichier *configTDP.pbs*
+1) Décompressez l'archive dans votre $HOME
+2) Exécutez le script ```buildPlafrim.sh```
+3) Exécutez les binaire grâce au fichier *configTDP.pbs*
 
 ## Création des graphes
 
