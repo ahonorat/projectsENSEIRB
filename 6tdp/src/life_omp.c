@@ -149,4 +149,3 @@ int main(int argc, char* argv[])
     free(nbngb);
     return EXIT_SUCCESS;
 }
-
