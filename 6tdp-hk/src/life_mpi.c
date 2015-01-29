@@ -3,13 +3,17 @@
 #include <sys/time.h>
 #include <string.h>
 
+#include <mpi.h>
+
+#include "util_mpi.h"
+
 //#define PRINT_ALIVE
 #define BS 1000
 
 #define cell( _i_, _j_ ) board[ ldboard * (_j_) + (_i_) ]
 #define ngb( _i_, _j_ )  nbngb[ ldnbngb * ((_j_) - 1) + ((_i_) - 1 ) ]
 
-inline double mytimer(void)
+double mytimer(void)
 {
     struct timeval tp;
     gettimeofday( &tp, NULL );
@@ -32,7 +36,7 @@ void output_board(int N, int *board, int ldboard, int loop)
 }
 
 /**
- * This function generates the iniatl board with one row and one
+ * This function generates the initial board with one row and one
  * column of living cells in the middle of the board
  */
 int generate_initial_board(int *board, int ldboard)
@@ -63,6 +67,26 @@ int main(int argc, char* argv[])
  
     int *board;
     int *nbngb;
+    
+    int *global_board;
+
+    struct grid grid;
+    MPI_Comm comm;
+    int nb_proc_row;
+    int nb_proc_tot;
+    int rank;
+    int nb_in_block;
+
+    MPI_Init(&argc,&argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &nb_proc_tot);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    // initialization of the grid communicator
+    if (EXIT_FAILURE == compute_communicator(nb_proc_tot,&nb_proc_row,&comm,&rank)){
+      MPI_Finalize();
+      return EXIT_FAILURE;
+    }
+
 
     if (argc < 2) {
 	maxloop = 10;
@@ -79,7 +103,7 @@ int main(int argc, char* argv[])
     board = malloc( ldboard * ldboard * sizeof(int) );
     nbngb = malloc( ldnbngb * ldnbngb * sizeof(int) );
 
-    num_alive = generate_initial_board( BS, &(cell(1, 1)), ldboard );
+    num_alive = generate_initial_board( &(cell(1, 1)), ldboard );
 
     //output_board( BS, &(cell(1, 1)), ldboard, 0 );
 
@@ -112,20 +136,20 @@ int main(int argc, char* argv[])
 
 	//mise à jour de la matrice
 	num_alive = 0;
-	for (i = 1; i <= BS; i++) {
-	    for (j = 1; j <= BS; j++) {
-		if ( (ngb( i, j ) < 2) || 
-		     (ngb( i, j ) > 3) ) {
-		    cell(i, j) = 0;
-		}
-		else {
-		    if ((ngb( i, j )) == 3)
-			cell(i, j) = 1;
-		}
-		if (cell(i, j) == 1) {
-		    num_alive ++;
-		}
+	for (j = 1; j <= BS; j++) {
+	  for (i = 1; i <= BS; i++) {
+	    if ( (ngb( i, j ) < 2) || 
+		 (ngb( i, j ) > 3) ) {
+	      cell(i, j) = 0;
 	    }
+	    else {
+	      if ((ngb( i, j )) == 3)
+		cell(i, j) = 1;
+	    }
+	    if (cell(i, j) == 1) {
+	      num_alive ++;
+	    }
+	  }
 	}
 
 	//output_board( BS, &(cell(1, 1)), ldboard, loop);
@@ -143,6 +167,10 @@ int main(int argc, char* argv[])
 
     free(board);
     free(nbngb);
+
+    MPI_Comm_free(&comm);
+    MPI_Finalize();
+
     return EXIT_SUCCESS;
 }
 
