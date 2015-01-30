@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
   board = malloc( ldboard * ldboard * sizeof(int) );
   nbngb = malloc( ldnbngb * ldnbngb * sizeof(int) );
 
-  num_alive = generate_initial_board( &(cell(1, 1)), ldboard );
+  num_alive = generate_initial_board( &(cell(0, 0)), ldboard );
 
   //output_board( BS, &(cell(1, 1)), ldboard, 0 );
 

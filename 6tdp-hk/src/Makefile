@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-W -Wall -std=c11 -g
+CFLAGS=-W -Wall -std=c11 -g #-DPRINT_ALIVE
 OMPFLAGS=-fopenmp
 PTHREADFLAGS=-lpthread
 SEQ=life_seq

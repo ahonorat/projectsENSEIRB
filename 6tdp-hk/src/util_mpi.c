@@ -81,21 +81,21 @@ int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, int*
 int mpi_grid_init(MPI_Comm* comm, struct grid* grid, int rank){
   int coords[2];
   MPI_Cart_coords(*comm, rank, 2, coords);
-  grid->rank_I = coords[0];
-  grid->rank_J = coords[1];
+  grid->rank_I = coords[1];
+  grid->rank_J = coords[0];
   // determination of neighbours rank (above and under)
   int r;
-  coords[0]++; 
+  coords[1]++; 
   MPI_Cart_rank(*comm, coords, &r);
   grid->proc_under = r;
-  coords[0] -= 2; 
+  coords[1] -= 2; 
   MPI_Cart_rank(*comm, coords, &r);
   grid->proc_above = r;
-  coords[0] += 1;
-  coords[1]++;
+  coords[1] += 1;
+  coords[0]++;
   MPI_Cart_rank(*comm, coords, &r);
   grid->proc_right = r;
-  coords[1] -= 2;
+  coords[0] -= 2;
   MPI_Cart_rank(*comm, coords, &r);
   grid->proc_left = r;
 

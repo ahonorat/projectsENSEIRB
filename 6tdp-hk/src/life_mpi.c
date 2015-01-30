@@ -36,12 +36,13 @@ void output_board(int N, int *global_board, int ldboard, int loop)
   }
 }
 
-void output_lboard(int N, int *board, int ldlboard, int loop)
+void output_lboard(int N, int *board, int ldlboard, int loop, int rank)
 {
   int i,j;
-  printf("loop %d\n", loop);
-  for (i=1; i<=N; i++) {
-    for (j=1; j<=N; j++) {
+  printf("loop %d rank %d\n", loop, rank);
+  //debug, else 1 -> N
+  for (i=0; i<=N+1; i++) {
+    for (j=0; j<=N+1; j++) {
       if ( cell( i, j ) == 1)
 	printf("X");
       else
@@ -135,7 +136,7 @@ int main(int argc, char* argv[])
 
   if (rank == 0){
     global_board = malloc( ldboard * ldboard * sizeof(int) );
-    num_alive = generate_initial_board( &(global_cell(1, 1)), ldboard );
+    num_alive = generate_initial_board( &global_cell( 1, 1), ldboard );
     printf("Starting number of living cells = %d\n", num_alive);
     t1 = mytimer();
   }
@@ -143,57 +144,71 @@ int main(int argc, char* argv[])
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, &(global_cell( 1, 1)), &(cell( 1, 1)), SCATTER, ldlboard);
 
   mpi_grid_init(&comm, &grid, rank);
+  //printf("rank #%d: %d %d\n", rank, grid.rank_I, grid.rank_J);
 
-  //output_lboard( nb_in_block, &(cell(1, 1)), ldlboard, 0 );
 
-  /* for (loop = 1; loop <= maxloop; loop++) { */
+  //output_lboard( nb_in_block, board, ldlboard, 0, rank );
 
-  /*   cell(   0, 0   ) = cell(BS, BS); */
-  /*   cell(   0, BS+1) = cell(BS,  1); */
-  /*   cell(BS+1, 0   ) = cell( 1, BS); */
-  /*   cell(BS+1, BS+1) = cell( 1,  1); */
+  for (loop = 1; loop <= maxloop; loop++) {
 
-  /*   for (i = 1; i <= BS; i++) { */
-  /*     cell(   i,    0) = cell( i, BS); */
-  /*     cell(   i, BS+1) = cell( i,  1); */
-  /*     cell(   0,    i) = cell(BS,  i); */
-  /*     cell(BS+1,    i) = cell( 1,  i); */
-  /*   } */
+    MPI_Datatype blocktype; // we need a specific type for row exchange
+    MPI_Type_vector(nb_in_block, 1, ldlboard, MPI_INT, &blocktype);
+    MPI_Type_commit(&blocktype);
+    // for upper/lower row
+    MPI_Sendrecv(&(cell( 1, 1)), 1, blocktype, grid.proc_above, 99, 
+		 &(cell( nb_in_block+1, 1)), 1, blocktype, grid.proc_under, 99,
+		 comm, MPI_STATUS_IGNORE);
+    MPI_Sendrecv(&(cell( nb_in_block, 1)), 1, blocktype, grid.proc_under, 99,
+		 &(cell( 0, 1)), 1, blocktype, grid.proc_above, 99, 
+		 comm, MPI_STATUS_IGNORE);
 
-  /*   //calcul du nombre de voisins */
-  /*   for (j = 1; j <= BS; j++) { */
-  /*     for (i = 1; i <= BS; i++) { */
-  /* 	ngb( i, j ) = */
-  /* 	  cell( i-1, j-1 ) + cell( i, j-1 ) + cell( i+1, j-1 ) + */
-  /* 	  cell( i-1, j   ) +                  cell( i+1, j   ) + */
-  /* 	  cell( i-1, j+1 ) + cell( i, j+1 ) + cell( i+1, j+1 ); */
-  /*     } */
-  /*   } */
+    // for left/right col
+    MPI_Sendrecv(&(cell( 0, 1)), ldlboard, MPI_INT, grid.proc_left, 98, 
+		 &(cell( 0, nb_in_block+1)), ldlboard, MPI_INT, grid.proc_right, 98,
+		 comm, MPI_STATUS_IGNORE);
+    MPI_Sendrecv(&(cell( 0, nb_in_block)), ldlboard, MPI_INT, grid.proc_right, 98,
+		 &(cell( 0, 0)), ldlboard, MPI_INT, grid.proc_left, 98, 
+		 comm, MPI_STATUS_IGNORE);
 
-  /*   //mise à jour de la matrice */
-  /*   num_alive = 0; */
-  /*   for (j = 1; j <= BS; j++) { */
-  /*     for (i = 1; i <= BS; i++) { */
-  /* 	if ( (ngb( i, j ) < 2) ||  */
-  /* 	     (ngb( i, j ) > 3) ) { */
-  /* 	  cell(i, j) = 0; */
-  /* 	} */
-  /* 	else { */
-  /* 	  if ((ngb( i, j )) == 3) */
-  /* 	    cell(i, j) = 1; */
-  /* 	} */
-  /* 	if (cell(i, j) == 1) { */
-  /* 	  num_alive ++; */
-  /* 	} */
-  /*     } */
-  /*   } */
+    //debug
+    /* if (loop == 1) */
+    /*   output_lboard( nb_in_block, board, ldlboard, 0, rank ); */
 
-  /*     //output_lboard( nb_in_block, &(cell(1, 1)), ldlboard, loop); */
-  /* #ifdef PRINT_ALIVE */
-  /*     if (rank == 0)*/
-  /*       printf("%d \n", num_alive); */
-  /* #endif */
-  /*   } */
+    //calcul du nombre de voisins
+    for (j = 1; j <= nb_in_block; j++) {
+      for (i = 1; i <= nb_in_block; i++) {
+  	ngb( i, j ) =
+  	  cell( i-1, j-1 ) + cell( i, j-1 ) + cell( i+1, j-1 ) +
+  	  cell( i-1, j   ) +                  cell( i+1, j   ) +
+  	  cell( i-1, j+1 ) + cell( i, j+1 ) + cell( i+1, j+1 );
+      }
+    }
+
+    //mise à jour de la matrice
+    local_alive = 0;
+    for (j = 1; j <= nb_in_block; j++) {
+      for (i = 1; i <= nb_in_block; i++) {
+  	if ( (ngb( i, j ) < 2) ||
+  	     (ngb( i, j ) > 3) ) {
+  	  cell(i, j) = 0;
+  	}
+  	else {
+  	  if ((ngb( i, j )) == 3)
+  	    cell(i, j) = 1;
+  	}
+  	if (cell(i, j) == 1) {
+  	  local_alive ++;
+  	}
+      }
+    }
+
+    //output_lboard( nb_in_block, board, ldlboard, loop, rank );
+#ifdef PRINT_ALIVE
+    MPI_Reduce(&local_alive, &num_alive, 1, MPI_INT, MPI_SUM, 0, comm);
+    if (rank == 0)
+      printf("%d \n", num_alive);
+#endif
+  }
 
   matrix_placement_proc(nb_proc_row, nb_in_block, &comm, &(cell( 1, 1)), &(global_cell( 1, 1)), GATHER, ldlboard);
   MPI_Reduce(&local_alive, &num_alive, 1, MPI_INT, MPI_SUM, 0, comm);

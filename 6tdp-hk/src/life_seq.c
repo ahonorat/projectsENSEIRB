@@ -81,9 +81,10 @@ int main(int argc, char* argv[])
   board = malloc( ldboard * ldboard * sizeof(int) );
   nbngb = malloc( ldnbngb * ldnbngb * sizeof(int) );
 
-  num_alive = generate_initial_board( &(cell(1, 1)), ldboard );
+  num_alive = generate_initial_board( &(cell(0, 0)), ldboard );
 
-  //output_board( BS, &(cell(1, 1)), ldboard, 0 );
+  //debug, else BS & (1,1)
+  //output_board( BS+2, &(cell(0, 0)), ldboard, 0 );
 
   printf("Starting number of living cells = %d\n", num_alive);
   t1 = mytimer();
@@ -101,6 +102,10 @@ int main(int argc, char* argv[])
       cell(   0,    i) = cell(BS,  i);
       cell(BS+1,    i) = cell( 1,  i);
     }
+
+    //debug
+    /* if (loop == 1) */
+    /*   output_board( BS+2, &(cell(0, 0)), ldboard, 0 ); */
 
     //calcul du nombre de voisins
     for (j = 1; j <= BS; j++) {
@@ -130,7 +135,8 @@ int main(int argc, char* argv[])
       }
     }
 
-    //output_board( BS, &(cell(1, 1)), ldboard, loop);
+    //debug, else BS & (1,1)
+    //    output_board( BS+2, &(cell(0, 0)), ldboard, loop);
 #ifdef PRINT_ALIVE
     printf("%d \n", num_alive);
 #endif
