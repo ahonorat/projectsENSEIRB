@@ -1,8 +1,8 @@
-#PBS -N tdp6-hk
+#PBS -N 6tdp-hk
 # temps en heure:minutes:secondes
 #PBS -l walltime=00:10:00
 # nombre de noeuds et de coeurs
-#PBS -l nodes=2:ppn=16
+#PBS -l nodes=2:ppn=8
 #PBS -l naccesspolicy=singlejob
 module load compiler/gcc mpi/openmpi/current
 # répertoire de travail dans lequel on soumet le batch
