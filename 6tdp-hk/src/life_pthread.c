@@ -17,6 +17,23 @@ sem_t *sem_before_ngb, *sem_before_update;
 //Same coment as above.
 pthread_cond_t *cond_before_ngb, *cond_before_update;
 
+//Used in combination with the conds
+pthread_mutex_t *mutex_before_ngb, *mutex_before_update;
+
+//Some important variables are declared global, so that we don't have to pass them as arguments to the working threads, and so that they can be accessed easily. Those variable are read-only for the working threads, so we don't have to worry about any concurrent access problem.
+int BS;
+int nb_block;
+int nb_iter;
+int nb_threads;
+int block_size;
+
+//Corresponds to the number of block per row/column
+int nb_block_1D;
+
+typedef struct _args_t(){
+  int start_block;
+} args_t;
+
 double mytimer(void)
 {
   struct timeval tp;
@@ -62,8 +79,70 @@ int generate_initial_board(int *board, int ldboard)
   return num_alive;
 }
 
+//Allocation and initialization of the semaphores and conds
+//TODO : faire une fonction de free
+void setup(int nb_block){
+  sem_before_ngb = malloc(nb_block*sizeof(sem_t));
+  sem_before_update = malloc(nb_block*sizeof(sem_t));
+  cond_before_ngb = malloc(nb_block*sizeof(pthread_cond_t));
+  cond_before_update = malloc(nb_block*sizeof(pthread_cond_t));
+  mutex_before_ngb = malloc(nb_block*sizeof(pthread_mutex_t));
+  mutex_before_update = malloc(nb_block*sizeof(pthread_mutex_t));
+  //TODO : check malloc
+  //TODO : faire l'initialisation en first touch
+  for(int block=0; block<nb_block, ++block){
+    //Initial value : 8, because otherwise the algorithm can't start
+    sem_init(&sem_before_ngb[block], 0, 8);
+    sem_init(&sem_before_update[block], 0, 0);
+    pthread_cond_init(&cond_before_ngb[block], NULL);
+    pthread_cond_init(&cond_before_update[block], NULL);
+    pthread_mutex_init(&mutex_before_ngb[block], NULL);
+    pthread_mutex_init(&mutex_before_update[block], NULL);
+  }
+}
+
+//Code executed by one thread
 void* life_1_thread(void* args){
-  
+  args_t *a = (args_t*)args;
+  for(int iter=1; iter<=nb_iter; ++iter){
+    //If there are more blocks than threads, a thread may have the responsibility of processing multiple blocs. A thread has to manage all the blocks which are equal to their "thread id" modulo nb_thread. (Actually, the thread id is a variable managed manually, and it can go from 0 to nb_thread-1. It also corresponds to the first block the thread has to manage)
+    for(int block=a->start_block; block<nb_block; block+=nb_thread){
+      //TODO : dans la fonction main(), faire en sorte de lancer les threads au début en faisant pthread_cond_signal sur chaque cond du tableau.
+      while(1){
+	pthread_cond_wait(&cond_before_ngb[block], &mutex_before_ngb[block]);
+	int sem;
+	sem_getvalue(sem_before_ngb[block], &sem);
+	//The thread needs to check the value of the semaphore in case he has been woken up by mistake (pthread_cond_wait isn't secure)
+	if(sem==8){
+	  //If the semaphore equals 8, we can continue
+	  break;
+	}
+      }
+      //TODO : continue
+    }
+  }
+}
+
+//Computes the neighbours for 1 block
+void ngb_1_block(int const * const cells, int * const ngb, int block){
+  int i_block,j_block;
+  i_block = block%nb_block_1D;
+  j_block = block/nb_block_1D;
+
+  int i,j,starting_i,starting_j,max_i,max_j;
+  starting_j = j_block*block_size + 1;
+  starting_i = i_block*block_size + 1;
+  max_j = starting_j + block_size;
+  max_i = starting_i + block_size;
+
+  for(j=starting_j; j<max_j; ++j){
+    for(i=starting_i; i<max_i; ++i){
+      ngb( i, j ) =
+	cell( i-1, j-1 ) + cell( i, j-1 ) + cell( i+1, j-1 ) +
+	cell( i-1, j   ) +                  cell( i+1, j   ) +
+	cell( i-1, j+1 ) + cell( i, j+1 ) + cell( i+1, j+1 );      
+    }
+  }
 }
 
 int main(int argc, char* argv[])
@@ -96,6 +175,9 @@ int main(int argc, char* argv[])
   num_alive = generate_initial_board( &(cell(1, 1)), ldboard );
 
   //output_board( BS, &(cell(1, 1)), ldboard, 0 );
+
+  nb_iter = maxloop;
+  //setup();
 
   printf("Starting number of living cells = %d\n", num_alive);
   t1 = mytimer();
