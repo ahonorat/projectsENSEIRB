@@ -9,30 +9,22 @@ MPI_SRC=life_mpi.c util_mpi.c
 MPI_BIN=life_mpi
 
 
-compile_all: compile_seq compile_omp compile_pthread compile_mpi
+all: $(SEQ) $(OMP) $(PTHREAD) $(MPI_BIN)
 
-compile_seq:
+$(SEQ): $(SEQ).c
 	$(CC) $(CFLAGS) $(SEQ).c -o $(SEQ)
 
-compile_omp:
+$(OMP): $(OMP).c
 	$(CC) $(OMPFLAGS) $(CFLAGS) $(OMP).c -o $(OMP)
 
-compile_pthread:
+$(PTHREAD): $(PTHREAD).c
 	$(CC) $(CFLAGS)  $(PTHREAD).c -o $(PTHREAD) $(PTHREADFLAGS)
 
-compile_mpi:
+$(MPI_BIN): $(MPI_SRC)
 	mpicc $(CFLAGS) $(MPI_SRC) -o $(MPI_BIN)
 
-clean: clean_seq clean_omp clean_pthread clean_mpi
-
-clean_seq:
+clean:
 	rm $(SEQ)
-
-clean_omp:
 	rm $(OMP)
-
-clean_pthread:
 	rm $(PTHREAD)
-
-clean_mpi:
 	rm $(MPI_BIN)
