@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     MPI_Datatype blocktype; // we need a specific type for row exchange
     MPI_Type_vector(nb_in_block, 1, ldlboard, MPI_INT, &blocktype);
     MPI_Type_commit(&blocktype);
-    // for upper/lower row
+    // for upper/lower ghost row
     MPI_Sendrecv(&(cell( 1, 1)), 1, blocktype, grid.proc_above, 99, 
 		 &(cell( nb_in_block+1, 1)), 1, blocktype, grid.proc_under, 99,
 		 comm, MPI_STATUS_IGNORE);
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 		 &(cell( 0, 1)), 1, blocktype, grid.proc_above, 99, 
 		 comm, MPI_STATUS_IGNORE);
 
-    // for left/right col
+    // for left/right ghost col
     MPI_Sendrecv(&(cell( 0, 1)), ldlboard, MPI_INT, grid.proc_left, 98, 
 		 &(cell( 0, nb_in_block+1)), ldlboard, MPI_INT, grid.proc_right, 98,
 		 comm, MPI_STATUS_IGNORE);
