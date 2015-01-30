@@ -40,9 +40,10 @@ int compute_communicator(int nb_proc_tot, int* nb_proc_row, MPI_Comm* new_comm, 
   return EXIT_SUCCESS;
 }
 
-int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, double* sendbuf, double* rcvbuf, enum arrangement type){
+int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, int* sendbuf, int* rcvbuf, enum arrangement type, int ldnblc){
   MPI_Datatype blocktype;
-  MPI_Datatype blocktype2;  
+  MPI_Datatype blocktype2; 
+  MPI_Datatype blocktype3;
   int ii, jj;
 
 
@@ -50,6 +51,9 @@ int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, doub
   MPI_Type_vector(nb_in_block, nb_in_block, nb_in_block*nb_proc_row, MPI_INT, &blocktype2);
   MPI_Type_create_resized(blocktype2, 0, sizeof(int), &blocktype);
   MPI_Type_commit(&blocktype);
+
+  MPI_Type_vector(nb_in_block, nb_in_block, ldnblc, MPI_INT, &blocktype3);
+  MPI_Type_commit(&blocktype3);
 
   int disps[nb_proc_row*nb_proc_row];
   int counts[nb_proc_row*nb_proc_row];
@@ -62,11 +66,12 @@ int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, doub
 
   // scatter or gather
   if (type == SCATTER) 
-    MPI_Scatterv(sendbuf, counts, disps, blocktype, rcvbuf, nb_in_block*nb_in_block, MPI_INT, 0, *comm);
+    MPI_Scatterv(sendbuf, counts, disps, blocktype, rcvbuf, 1, blocktype3, 0, *comm);
   else if (type == GATHER) 
-    MPI_Gatherv(sendbuf, nb_in_block*nb_in_block, MPI_INT, rcvbuf, counts, disps, blocktype, 0, *comm);
+    MPI_Gatherv(sendbuf, 1, blocktype3, rcvbuf, counts, disps, blocktype, 0, *comm);
   
   MPI_Type_free(&blocktype);
+  MPI_Type_free(&blocktype3);
   
   if (type != GATHER && type != SCATTER)
     return EXIT_FAILURE;

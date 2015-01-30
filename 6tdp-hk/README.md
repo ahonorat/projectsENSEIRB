@@ -13,8 +13,8 @@ On plafrim
 ## Exectution
 
 Each binary can take one or two optional arguments:
-- <number_of_iterations> 
-- <number_of_iterations> <grid_size>
+- number_of_iterations 
+- number_of_iterations grid_size
 
 
 

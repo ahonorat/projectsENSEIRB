@@ -34,7 +34,7 @@ int compute_communicator(int nb_proc_tot, int* nb_proc_row, MPI_Comm* new_comm, 
  * comm is the grid communicator
  * type is GATHER or SCATTER
  */
-int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, double* sendbuf, double* rcvbuf, enum arrangement type);
+int matrix_placement_proc(int nb_proc_row, int nb_in_block, MPI_Comm* comm, int* sendbuf, int* rcvbuf, enum arrangement type, int ldnblc);
 
 /*
  * Fill the grid fields with some appropriate values
