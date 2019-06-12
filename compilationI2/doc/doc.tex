@@ -1,0 +1,168 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+ 
+\usepackage{geometry}
+\geometry{hmargin=4cm,vmargin=3cm}
+\thispagestyle{empty}
+
+\begin{document}
+\vspace{2cm}
+\hrule
+\begin{flushleft}
+\LARGE{Projet de compilation :}\\
+\end{flushleft}
+\begin{flushright}
+\huge\textbf{Documentation}\\
+\LARGE\textit{Alexandre Honorat, Thibault Soucarre}
+\end{flushright}
+\hrule
+\vspace{4cm}
+
+\tableofcontents
+
+
+\newpage
+\section{Introduction}
+
+\subsection{Objectifs}
+
+\paragraph{}
+Ce projet a pour but de concevoir un compilateur afin de générer du code \textsf{LLVM} à partir d'un code écrit en pseudo \textsf{C}. Le code à compiler est simplifié par rapport au \textsf{C} : pas de \verb!switch! ni de \verb!static! ni de mots clés de précompilation. Enfin les types sont limités aux seuls entiers, flottants, et tableaux à une dimension d'entiers ou flottants. 
+
+\paragraph{}
+Par ailleurs le code se veut adaptable à un environnement particulier : certaines fonctions existant dans un autre fichier peuvent être appelées (celles du fichier \verb!enseirbot.cpp!. De même certaines variables externes peuvent être lues, et pour une part même écrites. Le compilateur génère une erreur si l'une de ces variables est écrite alors que cela n'est pas autorisé.
+
+\subsection{Implémentation}
+
+\paragraph{}
+Le compilateur est écrit à l'aide de \textsf{Lex} et \textsf{Yacc}. Deux modules sont par ailleurs présents afin d'alléger quelque peu le fichier principal dépassant les $1500$ lignes de code. Il s'agit pour l'un du module contenant les fonctions de gestion de l'arbre stockant des données sur les variables, et pour l'autre d'un module de fonctions diverses de gestion/création de chaînes de caractères.
+
+\paragraph{}
+De nombreuses variables globales sont utilisées dans le fichier principal, il convient plutôt d'expliquer le principe général du compilateur. Tout d'abord les \emph{tokens} ont pour seul type celui d'une structure contenant un attribut de type, un de registre, un de code, et enfin un identifiant de règle. Un dernier attribut contient un code secondaire, utilisé seulement pour deux règles (type \verb!c!). Les variables globales consistent le plus généralement en des \emph{flags} ou des variables utilisées temporairement par les règles. Notons la présence aussi d'un arbre contenant les variables temporaires, et d'un arbre contenant les variables et fonctions globales.
+
+\newpage
+\section{Erreurs détectées par le compilateur}
+
+\paragraph{}
+Certaines erreurs syntaxiques et sémantiques sont traitées directement par le compilateur. Cela est rendu possible grâce à l'attribut \verb!sem! des \emph{tokens}, cet attribut étant l'identifiant d'une règle du compilateur. Au fur et à mesure que les règles sont déduites, ces identifiants remontent et sont comparés entre eux. Certaines règles n'interviennent pas et se contentent de transmettre cet identifiant.
+
+\paragraph{}
+Le fichier \verb!src/input/test.c! contient des exemples de codes pour tous les types d'erreurs ci-dessous.
+
+\paragraph{Erreurs sémantiques.} 
+\begin{itemize}
+\item Utilisation d'une variable non déclarée
+\item Utilisation d'une variable non initialisée
+\item Erreur de type dans les arguments d'une fonction
+\item Tentative d'accéder à un tableau avec un type non entier
+\item Tentative d'utiliser un entier/flottant comme tableau
+\item Incrémentation/Décrémentation sur un tableau
+\item Tableau à plusieurs dimensions
+\item Types incompatibles lors d'une opération ou d'une comparaison
+\item Utilisation d'une constante comme membre gauche d'une affectation
+\item Utilisation d'un calcul comme opérande gauche d'une affectation
+\item Utilisation d'une non-condition dans une boucle ou un \verb!IF!
+\item Redéfinition d'une variable/fonction
+\item Définition d'une fonction à l'intérieure d'une autre
+\item Mauvais type de retour/Absence de retour
+\item Définition incorrecte/manquante de \verb!void drive()!
+\item Tentative d'écriture dans une variable non modifiable
+\end{itemize}
+
+\paragraph{Erreurs syntaxiques.}
+Ces erreurs sont pour la plupart aussi détectées par la grammaire elle-même, mais pas avec la même précision (la grammaire initiale donne une indication approximative seulement des erreurs de syntaxe). Il y a cependant d'autres erreurs détectées grâce à l'utilisation des identifiants de règles : il s'agit notamment de l'incrémentation et de la définition des fonctions. Ces différents exemples génèrent maintenant une erreur :
+
+\begin{verbatim}
+void test2(int a[]){}
+void test3(int a()){}
+--a++; 
+-- --a; 
+--a[2];
+-- ++b;
+--b++; 
+--b;
+b++;
+a[2]++; 
+--essai(); 
+\end{verbatim}
+
+
+\newpage
+\section{Gestion de la mémoire}
+
+\subsection{Mémoire \textsf{LLVM}}
+
+\paragraph{}
+Tous les entiers ou flottants déclarés dans le code d'entrée donnent lieu à une allocation dans \textsf{LLVM}. Ainsi pour toutes ces variables un pointeur est enregistré dans la table (ou plutôt arbre) des variables et lors de leur utilisation un load est à chaque fois effectué. Cela est moins optimal du point de vue de la mémoire que la solution qui consisterait à sauvegarder le dernier registre contenant la véritable valeur de la variable. 
+
+\paragraph{}
+Cependant il est plus facile de vérifier le code généré lorsque nous voyons à quels endroits une variable est loadé/storé plutôt que de comparer tous les registres. Par ailleurs cela permet de ne pas distinguer les variables déclarées des variables externes (par exemple \verb!$accel!) qui elles doivent être loadé/storé dans tous les cas.
+
+\paragraph{}
+Les variables externes dépendent quant à elles de paramètres de la fonction \verb!drive!. Or nous voulons pouvoir les utiliser dans les autres fonctions déclarées. Pour ce faire, à chaque fonction déclarée sont rajoutés les arguments de \verb!drive!, ces arguments sont alors aussi transmis lors de l'appel de ces fonctions. Seulement pour faciliter la mise en place de ce système, tous ces arguments ont le même nom dans toutes les fonctions, et nous chargeons donc au début de chaque fonction un ensemble de variables permettant d'utiliser les variables externes, même si la fonction n'en a pas besoin. 
+
+\subsection{Mémoire du compilateur}
+
+\paragraph{}
+Pour gérer les chaînes de caractères, le compilateur nécessite beaucoup d'allocations mémoires qui sont effectuées par des \verb!strdup!. Nous avons réécrit une fonction de concaténation permettant de libérer automatiquement la mémoire de son deuxième argument, ce qui permet de limiter le nombre de libération à effectuer.
+
+\paragraph{}
+Malgré nos efforts, quelques fuites mémoires persistent encore, pour le fichier \verb!drive.input! il y a actuellement $1336$ \emph allocs pour $1277$ \emph frees. Cela n'est pas parfait mais les ordres de grandeurs sont quasiment les mêmes. Notons que quatre fuites mémoires semblent être dûes à \textsf Yacc, il s'agit des $17028$ bits toujours atteignales en sortie.
+
+\newpage
+\section{Fonctionnalités non disponibles}
+
+\subsection{Erreurs}
+
+\paragraph{}
+Au cours de plusieurs tests nous avons pu constater une erreur concernant la détection de la non initialisation d'une variable. En effet lors de l'appel de tout fonction possédant des paramètres, l'initialisation de son premier paramètre ne sera jamais vérifiée. Le même problème se pose lors du non-stockage d'un calcul : dans \verb!int d,e; d+e;!, la vérification de l'initialisation de sera pas faite sur le premier opérande, mais uniquement sur les suivants. Nous n'avons pas de solution pour empêcher cette erreur. En effet le problème vient du fait qu'il ne faut pas faire la vérification d'initialisation sur une variable en cours d'initialisation, donc typiquement lorsqu'elle est le membre gauche d'une affectation.
+
+\subsection{Fonctionnalités non implémentées}
+
+\paragraph{}
+La gestion des déclarations au sein des blocs n'est pas optimale : il n'y a qu'une seule table des variables pour toute une fonction. Par conséquent les variables définies dans un bloc interne d'une boucle par exemple, sont aussi visibles à l'extérieur de celle-ci. Il y a plusieurs solutions permettant de règler ce problème, mais que nous n'avons pas implémenté. Il s'agit pour l'une d'utiliser des piles de tables de variables, et pour l'autre d'utiliser un compteur de niveau (et de stocker le niveau de définition avec la variable). Les deux solutions s'appuient sur l'utilisation d'une \emph{mid-rule action} au sein de la règle \verb!compound_statement!. Notons que seule la première des deux solutions permet de redéfinir des variables du même nom dans deux blocs différents.\\
+
+\begin{verbatim}
+compound_statement
+: '{' '}' {//aucune action à faire}
+| '{' statement_list '}' {//idem, car pas de déclaration de variable dans une statement_list}
+| '{' {//mid-rule action : empiler une nouvelle table ou bien incrémenter le compteur} 
+     declaration_list statement_list '}' 
+   {//dépiler la dernière table ou bien décrémenter le compteur}
+; 
+\end{verbatim}
+
+\end{document}
+
+\newpage
+\section{Syntaxe des variables et fonctioins externes}
+
+\subsection{Variables}
+
+\paragraph{Variables modifiables.} \verb!$accel!, \verb!gear!, \verb!clutch!, \verb!steer! et \verb!brake!.
+
+\paragraph{Variables non modifiables.} \verb!x!, \verb!y!, \verb!z!, \verb!speedx!, \verb!speedy!, \verb!speedz!, \verb!accelx!, \verb!accely!, \verb!accelz! et \verb!rpm!.
+
+\subsection{Fonctions}
+
+\begin{itemize}
+\item \verb!float norm_pi_pi(float)!
+\item \verb!float get_track_angle()!
+\item \verb!float get_pos_to_right()!
+\item \verb!float get_pos_to_middle()!
+\item \verb!float get_pos_to_left()!
+\item \verb!float get_pos_to_start()!
+\item \verb!float get_track_seg_length()!
+\item \verb!float get_track_seg_width()!
+\item \verb!float get_track_seg_start_width()!
+\item \verb!float get_track_seg_end_width()!
+\item \verb!float get_track_seg_radius()!
+\item \verb!float get_track_seg_right_radius()!
+\item \verb!float get_track_seg_left_radius()!
+\item \verb!float get_track_seg_arc()!
+\item \verb!float get_car_yaw()!
+\end{itemize}

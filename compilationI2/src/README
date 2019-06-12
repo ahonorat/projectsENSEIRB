@@ -1,0 +1,36 @@
+Prjet de compilation.
+Alexandre Honorat et Thibault Soucarre
+
+#######
+
+Documentation:
+
+Se référer au fichier suivant pour plus de détails :
+doc/doc.pdf
+
+#######
+
+Commandes du makefile :
+
+(all) : compile le compilateur, puis génère le code llvm pour torcs
+drive : génère le code llvm pour torcs
+test : teste les erreurs détectées par le compilateur
+clean : supprime tous les fichiers de sorties, et non sources
+
+#######
+
+Fichiers d'entrée : 
+
+src/input/test.c : différents tests de la gestion des erreurs par le compilateur
+src/input/drive.input : fichier d'exemple pour Torcs, fourni avec le driver
+
+#######
+
+Fichiers de sortie : 
+
+src/result/test.ll : fichier llvm des tests
+src/result/drive.ll : fichier llvm pour torcs
+
+
+
+

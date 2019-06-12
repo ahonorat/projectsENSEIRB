@@ -1,0 +1,41 @@
+/* Ceci est un input possible pour obtenir le fichier .ll . Toute fonction non definie est supposee 
+definie ailleurs. */
+/* Cette fonction conduit la voiture, la gardant au milieu de la route. */
+
+float dessere_frein(float d) {
+     float a[2];
+     a[1] = 1.;
+     a[1] -= 1.;
+     $brake = a[1];
+     if (2<1)
+     $brake = 0.25;     
+     else
+     $brake = 1.;
+     while($brake>=0.125){
+     $brake -= 0.125;
+     }	
+     for($brake = 1.0; $brake >= 0.125; $brake -= 0.125){
+     	$accel = 0.25;
+     }
+     if(d == 0.)
+      $accel = 1.;
+     return $brake;
+     
+}
+
+void drive() {
+	float angle,nangle;
+	float posmid,width,corr,cangle;
+	angle = get_track_angle() - get_car_yaw();
+	nangle = norm_pi_pi(angle);
+	posmid = get_pos_to_middle();
+	width = get_track_seg_width();
+        corr = posmid / width ; 
+	cangle = nangle - corr;
+        $steer = cangle;
+        //$accel = 0.75; /* on appuie a 75% sur l'accelerateur */
+	$gear = 1; /* on reste en 1ere vitesse */
+	dessere_frein(0.25);
+	$clutch = $brake;
+}
+
