@@ -1,0 +1,28 @@
+\section{Validation des résultats}
+
+La validation des résultats consiste principalement en une comparaison entre le comportement de le bibliothèque implémentée lors du projet et celui de \texttt{p\_thread}. Il convient à la fois de vérifier la correspondance des résultats, mais aussi d'expliquer les différences de temps de calcul entre les deux bibliothèques pour des tests choisis. 
+
+\subsection{Scripts de tests}
+
+\paragraph{}
+Trois scripts permettent de tester les tests fournis, ainsi que ceux implémentés dans le cadre du projet. 
+
+\paragraph{\texttt{run\_tests.sh}}
+Ce script lance tous les tests et effectue un \texttt{diff} entre les sorties des binaires utilisant \texttt{p\_thread} et celles des binaires utilisant la bibliothèque du projet. Les \texttt{diff} ne devraient rien afficher en dehors des différences dues au temps d'exécution ou aux adresses.
+
+\paragraph{\texttt{valgrind\_tests.sh}}
+Le principe est identique au script précédent, il ds'agit cette fois de comparer les sorties de valgrind.
+
+\paragraph{\texttt{bench/create\_graph.sh}}
+Les tests fournissant leur temps d'exécution en sortie sont ici exécutés afin de comparer les performances des deux bibliothèques. Cinq graphiques sont automatiquement générés, en faisant une moyenne sur dix lancements. Cela permet de s'assurer de la pertinence des performances sur des plateformes différentes.
+
+\subsection{Passage des tests}
+
+\paragraph{Tests fournis}
+Tous les tests fournis par M. Goglin fonctionnent avec la bibliothèque implémentée \texttt{thread.so}. Aucune erreur mémoire ne se présente pour ces tests (aucune fuite mémoire, aucune erreur de lecture). \textsf{Valgrind} détecte cependant un changement de pile (et émet un avertissement). Mais cette manipulation est maîtrisée : elle permet en effet de désallouer correctement la pile dans le test \texttt{12-join-main}.
+
+\paragraph{Tests implémentés/modifiés}
+La logique des tests implémentés dans le cadre du projet était de vérifier l'exécution des nouvelles fonctionnalités. Ceux-ci ont déjà été présentés dans les sections de ces nouvelles fonctionnalités, notons simplement que leur exécution ne provoque pas non plus d'erreur ni de fuite mémoire.
+
+\paragraph{Rapidité de la bibliothèque du projet}
+Les graphiques générés automatiquement par le script dans \texttt{bench/} permet de s'assurer qu'en toute circonstance, la bibliothèque du projet permet une exécution plus rapide des tests. Cela est toutefois a relativiser avec le fait que les tests ne sont pas prévus pour effectuer des opérations parallèles, où seuls une implémentation de threads noyaux aurait pu permettre à la bibliothèque d'être peut-être aussi performante.

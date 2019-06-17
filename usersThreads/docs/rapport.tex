@@ -1,0 +1,87 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{hmargin=3cm,vmargin=3cm}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{color}
+
+\usepackage{listings}
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
+  basicstyle=\small,               % the size of the fonts that are used for the code
+  breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{green},      % comment style
+  deletekeywords={...},            % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  frame=single,                    % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=xml,                    % the language of the code
+  morekeywords={Level,Cache,Architecture,...},            % if you want to add more keywords to the set
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{blue},  % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=2,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{red},         % string literal style
+  tabsize=2,                       % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true}
+
+\pagestyle{fancy}
+
+\lhead{Rapport}
+\rhead{Bibliothèque de Threads}
+\lfoot{ENSEIRB-MATMECA}
+\rfoot{Système d'Exploitation 2013-2014}
+
+\begin{document}
+
+\input{pageGarde.tex}
+
+\newpage
+%\tableofcontents
+
+%\vspace{0.2\textheight}
+
+\section*{Introduction}
+
+\paragraph{}
+Le projet de système d'exploitation consiste à développer une bibliothèque de threads, basée sur l'interface de \texttt{p\_thread}. Il s'agit dans cette version de la création de \emph{threads} utilisateurs uniquement, tous sur le même thread noyau ; ainsi tous les threads que créera l'utilisateur seront exécutés de manière séquentielle.
+
+\paragraph{}
+L'objectif était de pouvoir implémenter toutes les fonctions de prototypes identiques à ceux de \texttt{p\_thread}, de sorte que tous les tests fournis fonctionnent. Ce rapport présente l'aboutissement de ce projet, divisé en plusieurs parties : la première concerne l'implémentation initiale afin de passer les tests fournis, puis les suivantes décrivent les fonctionnalités avancées que nous avons développées pour améliorer cette première version.
+
+\newpage
+
+\input{fonc.tex}
+
+\input{signal.tex}
+
+\input{preemption.tex}
+
+\input{cancel.tex}
+
+\input{ordo.tex}
+
+\input{valid.tex}
+
+
+\section*{Conclusion}
+\paragraph{}
+Ce projet a permis à l'ensemble de l'équipe de consolider des bases au niveau de la compréhension du fonctionnement des threads et de leurs interactions. Le fait d'implémenter leur structure depuis l'origine est sans aucun doute la meilleure façon de comprendre le système. Enfin, la comparaison entre pthread et notre bibliothèque a apporté une vision critique au projet en soulevant les avantages des deux entités et en assimilant leurs limites.  
+\paragraph{}
+Nous regrettons toutefois de ne pas être parvenus à la gestion de plusieurs threads noyaux, qui bien qu'étant une partie très compliquée, soulève des problèmes au moins aussi intéressants que ceux que nous avons abordés.
+
+\end{document}

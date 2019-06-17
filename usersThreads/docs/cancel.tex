@@ -1,0 +1,24 @@
+\section{Annulation d'un thread}
+
+\paragraph{}
+L'objectif de cette fonctionnalité est de reproduire une fonction analogue à \texttt{pthread\_cancel}, c'est-à-dire de pouvoir stopper l'exécution d'un autre thread.
+
+\subsection{Mise en oeuvre}
+
+\paragraph{}
+Cette fonctionnalité est séparée en deux fonctions:
+\begin{itemize}
+\item \texttt{thread\_setcancelstate()}, permet d'activer ou de désactiver la possibilité d'annuler un thread, pour éviter divers problèmes d'exécution. Cette fonction manipule un champ de la structure thread : \texttt{is\_cancelable}. Notons qu'une correspondance est faite avec la fonction de \texttt{p\_thread} : mêmes arguments (ancien état et nouveau), et ne peuvent valoir que les deux macros que cette bibliothèque définit.
+\item \texttt{thread\_cancel()}, permet d'annuler un thread, elle change simplement le champ \texttt{to\_cancel} du thread à 1. Par la suite, lors d'un yield, on vérifie les champs \texttt{to\_cancel} et \texttt{is\_cancelable}, et s'ils sont valides, le thread est effetivement annulé. Il en est de même dans \texttt{thread\_join}.
+\end{itemize}
+
+\paragraph{}
+Il convient de préciser dans le fonctionnement de l'annulation, que si un thread a été annulé alors qu'il n'autorisait pas l'annulation, cette demande est gardée en mémoire jusqu'à ce qu'il autorise l'annulation. Par ailleurs la valeur de retour du thread est alors la macro \verb!PTHREAD_CANCELED!, définie par la bibliothèque \texttt{p\_thread}.
+
+\subsection{Tests}
+
+\paragraph{}
+Un seul test est destiné à vérifier le bon comportement de la bibliothèque du projet. Il s'agit de \texttt{17-thread-cancel}. Son fonctionnement est assez simple : il consiste à créer un nouveau thread (qui d'abord interdit son annulation puis l'autorise), puis lui envoyer une demande d'annulation. Pour s'assurer du bon fonctionnement, il faut donc que la demande d'annulation soit envoyée pendant que le thread est encore dans l'état où il interdit son annulation.
+
+\paragraph{}
+Afin que l'annulation soit requise au bon moment, le principe de base est de faire un \texttt{sleep} afin de laisser un certain laps de temps entre le moment où l'annulation est interdite puis autorisée. Seulement cette technique n'est pas compatible avec la bibliothèque du projet qui ne se base que sur un seul thread utilisateur, et quelques \texttt{thread\_yield()} ont donc été rajoutés. 
