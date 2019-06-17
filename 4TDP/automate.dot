@@ -1,0 +1,57 @@
+digraph coherence {
+
+graph [fontname = "times"];
+node [fontname = "times"];
+edge [fontname = "times"];
+
+    node
+        [shape=Mrecord width=1.5];
+
+    subgraph process_automaton {
+
+        label="Process";
+
+        //
+        // States (Nodes)
+        //
+
+        "Process::Normal"
+            [root="true" color="green" label="{Etat normal}"];
+
+        "Process::Demande"
+            [label="{Demande en cours}"];
+
+        "Process::Terminaison"
+            [color="red" label="{Terminaison}"];
+
+	"Process::AttenteTerminaison"
+            [label="{Attente de terminaison}"];
+	    
+        //
+        // Transitions (Edges)
+        //
+
+        "Process::Normal" -> "Process::Demande"
+            [label=<Plus de tâches dans la pile locale.<BR/><FONT color="blue">Envoi d'une demande de tâche au successeur.</FONT>>];
+
+        "Process::Demande" -> "Process::Normal"
+            [label=<Réception de tâche(s).<BR/><FONT color="blue">Réveil des threads endormis.</FONT>>];
+
+	"Process::AttenteTerminaison" -> "Process::Terminaison"   
+	    [label=<Réception d'un message de terminaison.<BR/><FONT color="blue">Traite les tâches locales restantes. Puis :<BR/>*Si quelconque, envoi des tuiles au root.<BR/>*Si root, réception des tuiles.<BR/>RETURN</FONT>>]
+	    
+        "Process::Normal" -> "Process::AttenteTerminaison"
+            [label=<Réception d'une demande de terminaison.<BR/><FONT color="red">[Processus non root]</FONT><BR/><FONT color="blue">Traite les tâches locales restantes.<BR/>Transmission du message au successeur.</FONT>>];
+
+        "Process::Normal" -> "Process::Terminaison"
+            [label=<Réception d'une demande de terminaison<BR/><FONT color="red">[Processus root]</FONT><BR/>ou de la terminaison.<BR/><FONT color="red">[Processus non root]</FONT><BR/><FONT color="blue">Traite les tâches locales restantes.<BR/>Envoi de la terminaison au successeur.<BR/>RETURN</FONT>>];
+	    
+        "Process::Demande" -> "Process::AttenteTerminaison"
+            [label=<Réception d'une demande de terminaison<BR/><FONT color="red">[Processus non root]</FONT><BR/>ou de sa propre demande de tâche.<BR/><FONT color="red">[Processus quelconque]</FONT><BR/><FONT color="blue">Traite les tâches locales restantes.<BR/>Envoi d'une demande<BR/>de terminaison au successeur</FONT>>];
+
+	"Process::Demande" -> "Process::Terminaison"
+            [label=<Réception d'une demande de terminaison<BR/><FONT color="red">[Processus root]</FONT><BR/>ou de la terminaison.<BR/><FONT color="red">[Processus non root]</FONT><BR/><FONT color="blue">Traite les tâches locales restantes.<BR/>Envoi de la terminaison<BR/>au successeur.<BR/>RETURN</FONT>>];
+
+}
+
+}
